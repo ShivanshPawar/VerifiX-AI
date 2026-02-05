@@ -1,0 +1,45 @@
+# --- Environment / Secrets (CRITICAL) ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+certs/
+secrets.json
+
+# --- Dependencies ---
+node_modules/
+bower_components/
+vendor/
+bin/
+obj/
+*.pyc
+__pycache__/
+.venv/
+env/
+
+# --- Logs & Databases ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.sqlite
+*.db
+
+# --- OS / IDE Specific ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.sublime-project
+
+# --- Build / Output ---
+dist/
+build/
+out/
+target/
+*.exe
+*.dll
+*.so
