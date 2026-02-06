@@ -5,9 +5,10 @@ const env = require('./src/config/env');
 const connectDB = require('./src/config/db');
 
 
-connectDB()
+connectDB(); // Connect to Database
 
 
+// Start the server
 app.listen(env.port, () => {
     console.log(`Server running on port ${env.port}`);
 });
