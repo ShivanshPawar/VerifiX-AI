@@ -1,4 +1,4 @@
-# DeepFake Detection Backend
+﻿# DeepFake Detection Backend
 
 A Node.js authentication backend for the DeepFake Detection application. This API provides user registration and login functionality with JWT-based authentication and password security using bcrypt.
 

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const env = require('./env');
 
+// function to connect database
 const connectDB = async () => {
     try {
         await mongoose.connect(env.mongouri);
