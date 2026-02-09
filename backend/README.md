@@ -1,6 +1,6 @@
 ﻿# DeepFake Detection Backend
 
-A Node.js authentication backend for the DeepFake Detection application. This API provides user registration and login functionality with JWT-based authentication and password security using bcrypt.
+A Node.js backend for the DeepFake Detection application. This API provides user authentication with JWT-based security and deepfake detection using Reality Defender SDK. Users can register, login, and scan images for AI-generated or manipulated content.
 
 ## 📋 Table of Contents
 
@@ -21,6 +21,7 @@ A Node.js authentication backend for the DeepFake Detection application. This AP
 - **Database:** MongoDB (Mongoose 9.1.6)
 - **Authentication:** JWT (JSON Web Tokens)
 - **Security:** Bcrypt (Password hashing)
+- **AI Detection:** Reality Defender SDK (@realitydefender/realitydefender 0.1.16)
 - **Environment Management:** dotenv
 - **HTTP Client:** Axios
 - **Additional Tools:** 
@@ -28,6 +29,7 @@ A Node.js authentication backend for the DeepFake Detection application. This AP
   - Multer for file uploads
   - UUID for unique identifiers
   - MIME types support
+  - Form-data for multipart uploads
 
 ---
 
@@ -43,13 +45,24 @@ backend/
 │   ├── app.js                    # Express app setup and middleware
 │   ├── config/
 │   │   ├── db.js                 # MongoDB connection configuration
-│   │   └── env.js                # Environment variables management
+│   │   ├── env.js                # Environment variables management
+│   │   └── realityDefender.config.js  # Reality Defender SDK configuration
 │   ├── controllers/
-│   │   └── auth.controller.js    # Authentication business logic
+│   │   ├── auth.controller.js    # Authentication business logic
+│   │   └── scan.controller.js    # Image scan and detection logic
+│   ├── middleware/
+│   │   ├── auth.middleware.js    # JWT authentication middleware
+│   │   └── upload.middleware.js  # File upload configuration (Multer)
 │   ├── models/
-│   │   └── user.model.js         # User MongoDB schema
-│   └── routes/
-│       └── auth.routes.js        # Authentication API routes
+│   │   ├── user.model.js         # User MongoDB schema
+│   │   └── scan.model.js         # Scan result MongoDB schema
+│   ├── routes/
+│   │   ├── auth.routes.js        # Authentication API routes
+│   │   └── scan.routes.js        # Image scan API routes
+│   ├── services/
+│   │   └── realityDefender.service.js  # Reality Defender SDK service wrapper
+│   └── utils/
+│       └── hash.util.js          # Image hash generation utility
 └── README.md                     # This file
 ```
 
@@ -81,6 +94,8 @@ This installs all required dependencies listed in `package.json`:
 - multer
 - uuid
 - mime-types
+- @realitydefender/realitydefender (Reality Defender SDK)
+- form-data
 
 ### Step 2: Configure Environment Variables
 
@@ -90,14 +105,18 @@ Create a `.env` file in the `backend` directory with the following variables:
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/deepfake_detection
 JWT_SECRET=your_super_secret_jwt_key_here
+REALITY_DEFENDER_API_KEY=your_reality_defender_api_key_here
+REALITY_DEFENDER_BASE_URL=https://api.realitydefender.ai  # Optional, defaults to official API
 ```
 
 **Environment Variables Explanation:**
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port number | 3000 |
-| `MONGO_URI` | MongoDB connection string | Required |
-| `JWT_SECRET` | Secret key for JWT token signing | Required |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `PORT` | Server port number | 3000 | No |
+| `MONGO_URI` | MongoDB connection string | - | Yes |
+| `JWT_SECRET` | Secret key for JWT token signing | - | Yes |
+| `REALITY_DEFENDER_API_KEY` | API key for Reality Defender service | - | Yes |
+| `REALITY_DEFENDER_BASE_URL` | Custom base URL for Reality Defender API | Official API | No |
 
 ---
 
@@ -127,9 +146,14 @@ The API will be accessible at `http://localhost:3000`
 
 ## 🔌 API Endpoints
 
-### Base URL
+### Authentication Base URL
 ```
 http://localhost:3000/api/v1/auth
+```
+
+### Scan Base URL
+```
+http://localhost:3000/api/v1/scan
 ```
 
 ### 1. User Registration
@@ -220,12 +244,77 @@ http://localhost:3000/api/v1/auth
 
 ---
 
+### 3. Scan Image for Deepfake Detection
+
+**Endpoint:** `POST /api/v1/scan/image`
+
+**Authentication:** Required (JWT token in cookie)
+
+**Request:** Multipart form data
+- `image`: Image file (jpg, jpeg, png, gif, webp)
+- Max file size: 10 MB
+
+**Success Response (200):**
+```json
+{
+  "message": "Scan completed",
+  "scanId": "507f1f77bcf86cd799439011",
+  "status": "COMPLETED",
+  "verdict": "AUTHENTIC",
+  "score": 0.95
+}
+```
+
+**Possible Verdicts:**
+- `AUTHENTIC` - Image appears to be genuine
+- `MANIPULATED` - Image has been manipulated or is AI-generated
+- `SUSPICIOUS` - Image shows signs of manipulation but uncertain
+
+**Error Response (400):**
+```json
+{
+  "message": "Image is required"
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "message": "Scan failed",
+  "error": "Error message details"
+}
+```
+
+**Description:**
+- Requires authentication via JWT token
+- Accepts image files up to 10 MB
+- Generates hash of the image for duplicate detection
+- Uses Reality Defender SDK to analyze the image
+- Stores scan results in database with status, verdict, and score
+- Returns detection results synchronously
+
+**Supported Image Formats:**
+- JPEG/JPG
+- PNG
+- GIF
+- WebP
+
+---
+
 ## 🔐 Features
 
 ### 1. **Secure Authentication**
    - Password hashing using bcrypt with salt iteration count of 10
    - JWT token-based session management
    - HTTP-only cookies for token storage
+   - Protected routes with authentication middleware
 
 ### 2. **User Registration**
    - Email validation and uniqueness check
@@ -239,16 +328,34 @@ http://localhost:3000/api/v1/auth
    - JWT token generation with 24-hour expiration
    - User data retrieval without returning sensitive information
 
-### 4. **Database Management**
+### 4. **Deepfake Detection (Image Scanning)**
+   - AI-powered image analysis using Reality Defender SDK
+   - Support for multiple image formats (JPEG, PNG, GIF, WebP)
+   - File size validation (max 10 MB)
+   - Image hash generation for duplicate detection
+   - Synchronous detection with immediate results
+   - Score-based confidence rating (0-1 scale)
+   - Verdict classification (AUTHENTIC, MANIPULATED, SUSPICIOUS)
+   - Scan history tracking in database
+
+### 5. **Database Management**
    - MongoDB integration using Mongoose
    - Automatic connection pooling
    - Schema validation for data integrity
-   - Timestamps on user documents
+   - Timestamps on user and scan documents
+   - User-scan relationship tracking
 
-### 5. **Error Handling**
+### 6. **File Upload Handling**
+   - Multer middleware for multipart form data
+   - Memory storage for efficient processing
+   - MIME type validation
+   - Temporary file management for SDK compatibility
+
+### 7. **Error Handling**
    - Comprehensive error messages for client feedback
-   - Proper HTTP status codes (201, 200, 400, 401)
+   - Proper HTTP status codes (201, 200, 400, 401, 500)
    - Database connection error handling
+   - API service error handling
 
 ---
 
@@ -269,8 +376,14 @@ http://localhost:3000/api/v1/auth
 - Centralized environment variable management
 - Default port fallback to 3000
 - Configuration exports for other modules
+- Environment variable validation
 
-### `/src/Controllers/auth.controller.js`
+### `/src/config/realityDefender.config.js`
+- Reality Defender SDK client initialization
+- API key validation
+- Client instance export for service layer
+
+### `/src/controllers/auth.controller.js`
 - **register()** - Handles user registration logic
   - Checks for existing users
   - Hashes passwords
@@ -281,7 +394,28 @@ http://localhost:3000/api/v1/auth
   - Validates user existence
   - Compares passwords
   - Generates JWT token with expiration
-  
+
+### `/src/controllers/scan.controller.js`
+- **createScan()** - Handles image scanning logic
+  - Validates file upload
+  - Generates image hash
+  - Creates scan record in database
+  - Calls Reality Defender service
+  - Updates scan with results
+  - Returns detection verdict and score
+
+### `/src/middleware/auth.middleware.js`
+- JWT token verification
+- User authentication check
+- Extracts user information from token
+- Protects routes requiring authentication
+
+### `/src/middleware/upload.middleware.js`
+- Multer configuration for file uploads
+- Memory storage for efficient processing
+- File size limits (10 MB)
+- MIME type validation for images
+
 ### `/src/models/user.model.js`
 - User schema definition with fields:
   - `email` - Unique, required, lowercase
@@ -289,14 +423,43 @@ http://localhost:3000/api/v1/auth
   - `password` - Required, hashed
   - `timestamps` - Automatic createdAt and updatedAt
 
+### `/src/models/scan.model.js`
+- Scan schema definition with fields:
+  - `user` - Reference to User model
+  - `filename` - Original filename
+  - `imageHash` - Hash of image for duplicate detection
+  - `status` - PENDING, COMPLETED, or FAILED
+  - `verdict` - AUTHENTIC, MANIPULATED, or SUSPICIOUS
+  - `score` - Confidence score (0-1)
+  - `aiRawResponse` - Raw response from Reality Defender
+  - `timestamps` - Automatic createdAt and updatedAt
+
 ### `/src/routes/auth.routes.js`
 - Route definitions for authentication endpoints:
   - POST `/register` - User registration
   - POST `/login` - User authentication
 
+### `/src/routes/scan.routes.js`
+- Route definitions for scan endpoints:
+  - POST `/image` - Scan image for deepfake detection (requires auth)
+
+### `/src/services/realityDefender.service.js`
+- **analyzeImage()** - Wrapper for Reality Defender SDK
+  - Converts buffer to temporary file
+  - Calls SDK `detect()` method
+  - Maps SDK response to application format
+  - Handles temporary file cleanup
+  - Error handling and logging
+
+### `/src/utils/hash.util.js`
+- Image hash generation utility
+- Used for duplicate detection
+
 ---
 
-## 🔄 Authentication Flow
+## 🔄 Application Flow
+
+### Authentication Flow
 
 ```
 User Registration:
@@ -317,6 +480,22 @@ User Login:
 6. User data is returned in response
 ```
 
+### Image Scanning Flow
+
+```
+Image Scan:
+1. User uploads image file (with JWT authentication)
+2. Middleware validates file type and size
+3. Image hash is generated for duplicate detection
+4. Scan record is created in database (status: PENDING)
+5. Image buffer is converted to temporary file
+6. Reality Defender SDK analyzes the image
+7. SDK returns detection result (status, score)
+8. Scan record is updated with results (status: COMPLETED)
+9. Temporary file is cleaned up
+10. Detection verdict and score are returned to user
+```
+
 ---
 
 ## 🛡️ Security Best Practices Implemented
@@ -325,10 +504,14 @@ User Login:
 - ✅ JWT token-based authentication
 - ✅ HTTP-only cookies for token storage
 - ✅ Email uniqueness validation
+- ✅ Protected API routes with authentication middleware
+- ✅ File upload validation (type and size)
 - ✅ Database connection error handling
 - ✅ Environment variable protection (.env not committed)
 - ✅ Proper HTTP status codes
 - ✅ Password comparison timing attack protection (bcrypt)
+- ✅ Secure temporary file handling
+- ✅ API key protection for external services
 
 ---
 
@@ -361,8 +544,14 @@ All models use Mongoose for schema validation and database operations. Ensure ti
 |-------|----------|
 | `MongoDB connection failed` | Check `MONGO_URI` in `.env` and ensure MongoDB is running |
 | `JWT_SECRET undefined` | Ensure `JWT_SECRET` is set in `.env` file |
+| `REALITY_DEFENDER_API_KEY missing` | Ensure `REALITY_DEFENDER_API_KEY` is set in `.env` file |
 | `User already exists` | Register with a different email address |
 | `Invalid email or password` | Verify credentials match registered account |
+| `Unauthorized` | Ensure JWT token is present in cookies for protected routes |
+| `Image is required` | Ensure image file is included in multipart form data |
+| `Invalid file type` | Use supported formats: JPEG, PNG, GIF, WebP |
+| `File too large` | Ensure image is under 10 MB |
+| `Scan failed` | Check Reality Defender API key and network connectivity |
 | `Cannot find module` | Run `npm install` to install dependencies |
 
 ---
@@ -386,7 +575,26 @@ Created for the DeepFake Detection Project
 - [Mongoose Documentation](https://mongoosejs.com/)
 - [JWT Documentation](https://jwt.io/)
 - [Bcrypt Documentation](https://www.npmjs.com/package/bcrypt)
+- [Reality Defender SDK Documentation](https://docs.realitydefender.com/sdks/quickstart)
+- [Multer Documentation](https://github.com/expressjs/multer)
 
 ---
 
-**Last Updated:** February 6, 2026
+## 📝 Notes on Reality Defender Integration
+
+The Reality Defender SDK requires file paths rather than buffers. The service layer handles this by:
+1. Creating temporary files from uploaded buffers
+2. Passing file paths to the SDK
+3. Cleaning up temporary files after analysis
+
+The SDK's `detect()` method handles both file upload and analysis in a single call, making it efficient for synchronous operations.
+
+**Getting a Reality Defender API Key:**
+1. Sign up at [Reality Defender Platform](https://app.realitydefender.ai)
+2. Navigate to Settings → API Keys
+3. Generate a new API key
+4. Add it to your `.env` file as `REALITY_DEFENDER_API_KEY`
+
+---
+
+**Last Updated:** February 9, 2026

@@ -32,7 +32,7 @@ module.exports = async function authMiddleware(req, res, next) {
             })
         }
 
-        // Attach user information to the request object for use in subsequent middleware/routes
+        // Attach user information to the request object for use in middleware/routes
         req.user = {
             id: user._id,
             email: user.email,

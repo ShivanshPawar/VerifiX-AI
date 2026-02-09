@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
+// Scan Schema
 const scanSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     filename: String,
@@ -13,13 +14,13 @@ const scanSchema = new mongoose.Schema(
     imageHash: {
       type: String,
       required: true,
-      index: true
+      index: true,
     },
 
     status: {
       type: String,
       enum: ["PENDING", "COMPLETED", "FAILED"],
-      default: "PENDING"
+      default: "PENDING",
     },
 
     verdict: {
@@ -30,10 +31,13 @@ const scanSchema = new mongoose.Schema(
     score: Number,
 
     aiRawResponse: {
-      type: Object   // full Reality Defender JSON
-    }
+      type: mongoose.Schema.Types.Mixed,
+    },
   },
-  { timestamps: true }
+
+  {
+    timestamps: true
+  }
 );
 
 module.exports = mongoose.model("Scan", scanSchema);
