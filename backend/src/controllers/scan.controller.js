@@ -1,12 +1,17 @@
-const Scan = require("../models/scan.model");
 const { generateImageHash } = require("../utils/hash.util");
 const { analyzeImage } = require("../services/realityDefender.service");
 const { generateScanReport } = require("../services/geminiReport.service");
+const ImageAnalysis = require("../models/imageAnalysis.model");
+const UserScan = require("../models/userScan.model")
 
 exports.createScan = async (req, res) => {
 
-  try {
+  // Simplify cleint messege
+  const userId = req.user.id;
+  const buffer = req.file.buffer;
+  const originalName = req.file.originalname
 
+  try {
 
     if (!req.file) {
       return res.status(400).json({ message: "Image is required" });
@@ -15,59 +20,73 @@ exports.createScan = async (req, res) => {
     // Generate hash
     const imageHash = generateImageHash(req.file.buffer);
 
-    // Create scan (PENDING)
-    const scan = await Scan.create({
-      user: req.user.id,
-      filename: req.file.originalname,
-      imageHash,
-      status: "PENDING",
-    });
+    // Checks the image hash already exists in database 
+    let analysis = await ImageAnalysis.findOne({ imageHash })
 
-    console.log("Image send to the Reality Defender");
+    // If image hash already exists in database, use cached analysis
+    if (analysis) {
+      // Create a user scan record linking user to existing analysis
+      await UserScan.create({
+        user: userId,
+        imageHash,
+        analysis: analysis._id
+      })
 
-    // AI Detection (SYNC)
-    const aiResult = await analyzeImage(
-      req.file.buffer,
-      req.file.originalname
+      // Return cached results without re-analyzing
+      return res.json({
+        message: "Scan Completed",
+        source: "CACHE",
+        verdict: analysis.verdict,
+        confidence_percent: analysis.confidencePercent,
+        manipulation_type: analysis.manipulationType,
+        report: analysis.report
+      });
+    }
+
+    // AI Detection (SYNC) Reality Defender
+    const rdResult = await analyzeImage(
+      buffer,
+      originalName
     );
 
-    console.log("Scan Completed and image send to the AI to Generate report");
+    // simplification
+    const verdict = rdResult.verdict;
+    const confidencePercent = Math.round(rdResult.score * 100);
+    const aiRawResponse = rdResult.raw
 
     // AI Report Generation 
     const report = await generateScanReport({
-      verdict: aiResult.verdict,
-      score: Math.round(aiResult.score * 100),
-      aiRawResponse: aiResult.raw,
+      verdict: verdict,
+      score: confidencePercent,
+      aiRawResponse: aiRawResponse,
     })
 
-    console.log("Data fetched");
+    // Save global analysis
+    analysis = await ImageAnalysis.create({
+      imageHash,
+      verdict,
+      confidencePercent,
+      report,
+      aiRawResponse
+    })
 
+    // Save user history
+    await UserScan.create({
+      user: userId,
+      imageHash,
+      analysis: analysis._id
+    })
 
-    // Update scan
-    scan.status = "COMPLETED";
-    scan.verdict = aiResult.verdict;
-    scan.score = Math.round(aiResult.score * 100);
-    scan.aiRawResponse = aiResult.raw;
-    scan.report = report;
-
-    await scan.save();
-
-    console.log("Final Scan :", {
-      scanId: scan._id,
-      status: scan.status,
-      verdict: scan.verdict,
-      score: scan.score,
-      report: report,
-    });
-
+    // Response send to the client
     return res.status(200).json({
       message: "Scan completed",
-      scanId: scan._id,
-      status: scan.status,
-      verdict: scan.verdict,
-      score: scan.score,
-      report,
-    });
+      source: "NEW_ANALYSIS",
+      verdict,
+      confidence_percent: confidencePercent,
+      report
+    })
+
+
   } catch (error) {
     return res.status(500).json({
       message: "Scan failed",
