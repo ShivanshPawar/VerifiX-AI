@@ -33,6 +33,10 @@ const scanSchema = new mongoose.Schema(
     aiRawResponse: {
       type: mongoose.Schema.Types.Mixed,
     },
+
+    report: {
+      type: Object // Gemini-generated report
+    },
   },
 
   {

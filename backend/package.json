@@ -11,6 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^1.40.0",
+    "@google/generative-ai": "^0.24.1",
     "@realitydefender/realitydefender": "^0.1.16",
     "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
