@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const UserScanSchema = new mongoose.Schema(
     {
+        // Reference to the user who performed the scan
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
@@ -10,17 +11,20 @@ const UserScanSchema = new mongoose.Schema(
             index: true
         },
 
+        // Image hash (used for quick lookups or debugging)
         imageHash: {
             type: String,
             required: true
         },
 
+        // Reference to stored AI analysis result
         analysis: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "imageAnalysis",
+            ref: "ImageAnalysis",
             required: true
         },
 
+        // Timestamp when the scan was performed
         scannedAt: {
             type: Date,
             default: Date.now
