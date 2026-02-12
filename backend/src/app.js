@@ -22,6 +22,8 @@ app.use("/api/v1/auth/", authRoutes)
 app.use("/api/v1/scan/", scanRoutes)
 // History Protected Route 
 app.use("/api/v1/history", historyRoutes)
+// Dashboard Protected Route
+app.use("/api/dashboard", require("./routes/dashboard.routes"));
 
 
 module.exports = app;
