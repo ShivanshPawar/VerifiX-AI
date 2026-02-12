@@ -1,6 +1,6 @@
 ﻿# DeepFake Detection Backend
 
-A Node.js backend for the DeepFake Detection application. This API provides user authentication with JWT-based security and deepfake detection using Reality Defender SDK. Users can register, login, and scan images for AI-generated or manipulated content.
+A Node.js backend for the DeepFake Detection application. This API provides user authentication with JWT-based security, deepfake detection using Reality Defender SDK, AI-generated human-readable reports using Google Gemini, and per-user scan history. Users can register, login, scan images for AI-generated or manipulated content, and review past scans with detailed explanations.
 
 ## 📋 Table of Contents
 
@@ -21,7 +21,7 @@ A Node.js backend for the DeepFake Detection application. This API provides user
 - **Database:** MongoDB (Mongoose 9.1.6)
 - **Authentication:** JWT (JSON Web Tokens)
 - **Security:** Bcrypt (Password hashing)
-- **AI Detection:** Reality Defender SDK (@realitydefender/realitydefender 0.1.16)
+- **AI Detection & Reports:** Reality Defender SDK (@realitydefender/realitydefender 0.1.16), Google Gemini (@google/genai)
 - **Environment Management:** dotenv
 - **HTTP Client:** Axios
 - **Additional Tools:** 
@@ -44,25 +44,30 @@ backend/
 ├── src/
 │   ├── app.js                    # Express app setup and middleware
 │   ├── config/
-│   │   ├── db.js                 # MongoDB connection configuration
-│   │   ├── env.js                # Environment variables management
-│   │   └── realityDefender.config.js  # Reality Defender SDK configuration
+│   │   ├── db.js                       # MongoDB connection configuration
+│   │   ├── env.js                      # Environment variables management
+│   │   ├── realityDefender.config.js   # Reality Defender SDK configuration
+│   │   └── gemini.config.js            # Google Gemini client configuration
 │   ├── controllers/
-│   │   ├── auth.controller.js    # Authentication business logic
-│   │   └── scan.controller.js    # Image scan and detection logic
+│   │   ├── auth.controller.js          # Authentication business logic
+│   │   ├── scan.controller.js          # Image scan, caching and detection logic
+│   │   └── history.controller.js       # User scan history and details logic
 │   ├── middleware/
-│   │   ├── auth.middleware.js    # JWT authentication middleware
-│   │   └── upload.middleware.js  # File upload configuration (Multer)
+│   │   ├── auth.middleware.js          # JWT authentication middleware
+│   │   └── upload.middleware.js        # File upload configuration (Multer)
 │   ├── models/
-│   │   ├── user.model.js         # User MongoDB schema
-│   │   └── scan.model.js         # Scan result MongoDB schema
+│   │   ├── user.model.js               # User MongoDB schema
+│   │   ├── imageAnalysis.model.js      # Global image analysis and report cache
+│   │   └── userScan.model.js           # Per-user scan history entries
 │   ├── routes/
-│   │   ├── auth.routes.js        # Authentication API routes
-│   │   └── scan.routes.js        # Image scan API routes
+│   │   ├── auth.routes.js              # Authentication API routes
+│   │   ├── scan.routes.js              # Image scan API routes
+│   │   └── history.routes.js           # Scan history API routes
 │   ├── services/
-│   │   └── realityDefender.service.js  # Reality Defender SDK service wrapper
+│   │   ├── realityDefender.service.js  # Reality Defender SDK service wrapper
+│   │   └── geminiReport.service.js     # Google Gemini-based scan report generator
 │   └── utils/
-│       └── hash.util.js          # Image hash generation utility
+│       └── hash.util.js                # Image hash generation utility
 └── README.md                     # This file
 ```
 
@@ -107,6 +112,7 @@ MONGO_URI=mongodb://localhost:27017/deepfake_detection
 JWT_SECRET=your_super_secret_jwt_key_here
 REALITY_DEFENDER_API_KEY=your_reality_defender_api_key_here
 REALITY_DEFENDER_BASE_URL=https://api.realitydefender.ai  # Optional, defaults to official API
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 **Environment Variables Explanation:**
@@ -117,6 +123,7 @@ REALITY_DEFENDER_BASE_URL=https://api.realitydefender.ai  # Optional, defaults t
 | `JWT_SECRET` | Secret key for JWT token signing | - | Yes |
 | `REALITY_DEFENDER_API_KEY` | API key for Reality Defender service | - | Yes |
 | `REALITY_DEFENDER_BASE_URL` | Custom base URL for Reality Defender API | Official API | No |
+| `GEMINI_API_KEY` | API key for Google Gemini (AI scan reports) | - | Yes |
 
 ---
 
@@ -154,6 +161,11 @@ http://localhost:3000/api/v1/auth
 ### Scan Base URL
 ```
 http://localhost:3000/api/v1/scan
+```
+
+### History Base URL
+```
+http://localhost:3000/api/v1/history
 ```
 
 ### 1. User Registration
@@ -258,10 +270,19 @@ http://localhost:3000/api/v1/scan
 ```json
 {
   "message": "Scan completed",
-  "scanId": "507f1f77bcf86cd799439011",
-  "status": "COMPLETED",
+  "source": "NEW_ANALYSIS",
   "verdict": "AUTHENTIC",
-  "score": 0.95
+  "confidence_percent": 95,
+  "report": {
+    "summary": "Short human-readable explanation of the result",
+    "confidence_level": "HIGH",
+    "confidence_percent": 95,
+    "manipulation_type": "AI-Generated",
+    "what_this_means": [
+      "Plain-language bullet points for the user"
+    ],
+    "recommended_action": "Suggested next steps for the user"
+  }
 }
 ```
 
@@ -295,16 +316,103 @@ http://localhost:3000/api/v1/scan
 **Description:**
 - Requires authentication via JWT token
 - Accepts image files up to 10 MB
-- Generates hash of the image for duplicate detection
-- Uses Reality Defender SDK to analyze the image
-- Stores scan results in database with status, verdict, and score
-- Returns detection results synchronously
+- Generates an image hash for duplicate detection and caching
+- Reuses existing analysis if the same image hash was scanned before (no extra AI cost)
+- Uses Reality Defender SDK to analyze the image when needed
+- Uses Google Gemini to generate a structured, human-readable JSON report
+- Stores global image analysis and per-user scan history in MongoDB
+- Returns detection results and explanation synchronously
 
 **Supported Image Formats:**
 - JPEG/JPG
 - PNG
 - GIF
 - WebP
+
+---
+
+### 4. Get Scan History (Paginated)
+
+**Endpoint:** `GET /api/v1/history`
+
+**Authentication:** Required (JWT token in cookie)
+
+**Query Parameters (optional):**
+- `page` (number, default: 1)
+- `limit` (number, default: 10)
+
+**Success Response (200):**
+```json
+{
+  "total": 25,
+  "page": 1,
+  "limit": 10,
+  "data": [
+    {
+      "scanId": "67a8e2f923d4b0b8f8b4c101",
+      "imageHash": "abc123...",
+      "verdict": "MANIPULATED",
+      "confidencePercent": 92,
+      "scannedAt": "2026-02-11T10:20:30.000Z"
+    }
+  ]
+}
+```
+
+**Description:**
+- Returns the logged-in user's scan history
+- Results are sorted with most recent scans first
+- Supports pagination with `page` and `limit` parameters
+
+---
+
+### 5. Get Scan Details
+
+**Endpoint:** `GET /api/v1/history/:id`
+
+**Authentication:** Required (JWT token in cookie)
+
+**Success Response (200):**
+```json
+{
+  "verdict": "MANIPULATED",
+  "confidencePercent": 92,
+  "report": {
+    "summary": "Short human-readable explanation of the result",
+    "confidence_level": "HIGH",
+    "confidence_percent": 92,
+    "manipulation_type": "AI-Generated",
+    "what_this_means": [
+      "Plain-language bullet points for the user"
+    ],
+    "recommended_action": "Suggested next steps for the user"
+  },
+  "scannedAt": "2026-02-11T10:20:30.000Z"
+}
+```
+
+**Description:**
+- Returns full details for a single scan from the user's history
+- Includes the structured report generated by Google Gemini
+
+---
+
+### 6. Delete History Entry
+
+**Endpoint:** `DELETE /api/v1/history/:id`
+
+**Authentication:** Required (JWT token in cookie)
+
+**Success Response (200):**
+```json
+{
+  "message": "History entry deleted successfully"
+}
+```
+
+**Description:**
+- Deletes a single scan entry from the logged-in user's history
+- Only scans owned by the user can be deleted
 
 ---
 
@@ -334,8 +442,8 @@ http://localhost:3000/api/v1/scan
    - File size validation (max 10 MB)
    - Image hash generation for duplicate detection
    - Synchronous detection with immediate results
-   - Score-based confidence rating (0-1 scale)
-   - Verdict classification (AUTHENTIC, MANIPULATED, SUSPICIOUS)
+   - Confidence rating as a percentage (1–100)
+   - Verdict classification (AUTHENTIC, MANIPULATED, INCONCLUSIVE)
    - Scan history tracking in database
 
 ### 5. **Database Management**
@@ -356,6 +464,12 @@ http://localhost:3000/api/v1/scan
    - Proper HTTP status codes (201, 200, 400, 401, 500)
    - Database connection error handling
    - API service error handling
+
+### 8. **Scan History & AI Reports**
+   - Per-user scan history with pagination (`page`, `limit`)
+   - Caching of repeated scans using image hash to avoid redundant AI calls
+   - Structured, human-readable JSON reports generated using Google Gemini
+   - Ability to fetch detailed scan reports and delete individual history entries
 
 ---
 
@@ -396,13 +510,27 @@ http://localhost:3000/api/v1/scan
   - Generates JWT token with expiration
 
 ### `/src/controllers/scan.controller.js`
-- **createScan()** - Handles image scanning logic
+- **createScan()** - Handles image scanning, caching, and reporting logic
   - Validates file upload
   - Generates image hash
-  - Creates scan record in database
-  - Calls Reality Defender service
-  - Updates scan with results
-  - Returns detection verdict and score
+  - Checks for existing `ImageAnalysis` by image hash (cache hit)
+  - Calls Reality Defender service if no cached analysis exists
+  - Generates a human-readable JSON report using Google Gemini
+  - Saves global image analysis (`ImageAnalysis`) and per-user history (`UserScan`)
+  - Returns verdict, confidence percent, report JSON, and source (`CACHE` or `NEW_ANALYSIS`)
+
+### `/src/controllers/history.controller.js`
+- **getUserHistory()** - Returns paginated scan history for the logged-in user
+  - Supports `page` and `limit` query parameters
+  - Populates related analysis data for each history entry
+  - Returns a lightweight list of scans for history views
+  
+- **getScanDetails()** - Returns detailed scan information for a single history item
+  - Ensures the scan belongs to the logged-in user
+  - Returns verdict, confidence percent, report JSON, and scan timestamp
+
+- **deleteHistory()** - Deletes a single scan entry from user history
+  - Ensures only the owner of the scan can delete it
 
 ### `/src/middleware/auth.middleware.js`
 - JWT token verification
@@ -434,6 +562,22 @@ http://localhost:3000/api/v1/scan
   - `aiRawResponse` - Raw response from Reality Defender
   - `timestamps` - Automatic createdAt and updatedAt
 
+### `/src/models/imageAnalysis.model.js`
+- Global image analysis schema definition with fields:
+  - `imageHash` - Unique hash of the uploaded image (used to prevent re-processing)
+  - `verdict` - Final AI verdict (`AUTHENTIC`, `MANIPULATED`, `INCONCLUSIVE`)
+  - `confidencePercent` - Confidence score as a percentage (1–100)
+  - `report` - Cleaned and structured JSON report (for frontend display)
+  - `aiRawResponse` - Raw response from Reality Defender for debugging and auditing
+  - `timestamps` - Automatic createdAt and updatedAt
+
+### `/src/models/userScan.model.js`
+- Per-user scan history schema definition with fields:
+  - `user` - Reference to User model (who performed the scan)
+  - `imageHash` - Hash of the scanned image
+  - `analysis` - Reference to the corresponding `ImageAnalysis` document
+  - `scannedAt` - Timestamp when the scan was performed
+
 ### `/src/routes/auth.routes.js`
 - Route definitions for authentication endpoints:
   - POST `/register` - User registration
@@ -443,6 +587,12 @@ http://localhost:3000/api/v1/scan
 - Route definitions for scan endpoints:
   - POST `/image` - Scan image for deepfake detection (requires auth)
 
+### `/src/routes/history.routes.js`
+- Route definitions for scan history endpoints (all require auth):
+  - GET `/` - Get paginated scan history for the logged-in user
+  - GET `/:id` - Get detailed scan result for a specific history entry
+  - DELETE `/:id` - Delete a specific history entry for the logged-in user
+
 ### `/src/services/realityDefender.service.js`
 - **analyzeImage()** - Wrapper for Reality Defender SDK
   - Converts buffer to temporary file
@@ -450,6 +600,17 @@ http://localhost:3000/api/v1/scan
   - Maps SDK response to application format
   - Handles temporary file cleanup
   - Error handling and logging
+
+### `/src/services/geminiReport.service.js`
+- **generateScanReport()** - Generates a user-friendly scan report using Google Gemini
+  - Takes Reality Defender verdict, confidence percent and raw response as input
+  - Builds a strict prompt to keep verdicts consistent and user-friendly
+  - Returns a JSON object with summary, confidence level, manipulation type, bullet-point explanation, and recommended action
+
+### `/src/config/gemini.config.js`
+- Google Gemini client configuration
+- Validates presence of `GEMINI_API_KEY` in environment variables
+- Exposes a configured `GoogleGenAI` instance used by `geminiReport.service.js`
 
 ### `/src/utils/hash.util.js`
 - Image hash generation utility
@@ -486,14 +647,20 @@ User Login:
 Image Scan:
 1. User uploads image file (with JWT authentication)
 2. Middleware validates file type and size
-3. Image hash is generated for duplicate detection
-4. Scan record is created in database (status: PENDING)
-5. Image buffer is converted to temporary file
-6. Reality Defender SDK analyzes the image
-7. SDK returns detection result (status, score)
-8. Scan record is updated with results (status: COMPLETED)
-9. Temporary file is cleaned up
-10. Detection verdict and score are returned to user
+3. Image hash is generated for duplicate detection and caching
+4. System checks if an existing analysis already exists for this hash
+5. If existing analysis is found:
+   - A new user history entry is created for this user
+   - Cached verdict, confidence percent, and report are returned
+6. If no existing analysis is found:
+   - Image buffer is converted to a temporary file
+   - Reality Defender SDK analyzes the image
+   - SDK returns detection result (verdict, score, raw response)
+   - Google Gemini generates a structured, human-readable JSON report
+   - A new image analysis document is stored with verdict, confidence percent, report and raw response
+   - A new user scan history entry is stored for this user
+   - Temporary file is cleaned up
+7. Detection verdict, confidence percent, report and source (`CACHE` or `NEW_ANALYSIS`) are returned to the user
 ```
 
 ---
@@ -597,4 +764,4 @@ The SDK's `detect()` method handles both file upload and analysis in a single ca
 
 ---
 
-**Last Updated:** February 9, 2026
+**Last Updated:** February 12, 2026
