@@ -55,7 +55,10 @@ exports.getDashboard = async (req, res) => {
             scanId: scan._id,
             verdict: scan.analysis.verdict,
             confidence: scan.analysis.score,
-            scannedAt: scan.scannedAt
+            scannedAt: scan.scannedAt,
+            title: scan.title,
+            thumbnail: scan.thumbnail,
+
         }));
 
         // Shared response

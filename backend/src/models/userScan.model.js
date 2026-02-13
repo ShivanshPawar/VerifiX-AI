@@ -24,6 +24,19 @@ const UserScanSchema = new mongoose.Schema(
             required: true
         },
 
+        // Scan title
+        title: {
+            type: String,
+            trim: true,
+            maxlength: 100,
+            default: "Untitled Scan"
+        },
+
+        // Small compressed thumbnail
+        thumbnail: {
+            type: String // base64 small compressed image
+        },
+
         // Timestamp when the scan was performed
         scannedAt: {
             type: Date,

@@ -34,7 +34,10 @@ exports.getUserHistory = async (req, res) => {
             imageHash: scan.analysis.imageHash,
             verdict: scan.analysis.verdict,
             confidencePercent: scan.analysis.confidencePercent,
-            scannedAt: scan.scannedAt
+            scannedAt: scan.scannedAt,
+            title: scan.title,
+            thumbnail: scan.thumbnail,
+
         }))
 
         // Send paginated response

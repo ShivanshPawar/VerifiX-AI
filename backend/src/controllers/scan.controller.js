@@ -3,6 +3,7 @@ const { analyzeImage } = require("../services/realityDefender.service");
 const { generateScanReport } = require("../services/geminiReport.service");
 const ImageAnalysis = require("../models/imageAnalysis.model");
 const UserScan = require("../models/userScan.model")
+const sharp = require("sharp");
 
 exports.createScan = async (req, res) => {
 
@@ -10,7 +11,7 @@ exports.createScan = async (req, res) => {
   const userId = req.user.id;
   const buffer = req.file.buffer;
   const originalName = req.file.originalname
-
+  const title = req.body.title || "Untitled Scan";
   try {
 
     if (!req.file) {
@@ -19,6 +20,14 @@ exports.createScan = async (req, res) => {
 
     // Generate hash
     const imageHash = generateImageHash(req.file.buffer);
+
+    // Generate small compressed thumbnail (per user)
+    const thumbnailBuffer = await sharp(buffer)
+      .resize(120, 120)
+      .jpeg({ quality: 35 })
+      .toBuffer();
+
+    const thumbnailBase64 = thumbnailBuffer.toString("base64");
 
     // Checks the image hash already exists in database 
     let analysis = await ImageAnalysis.findOne({ imageHash })
@@ -29,7 +38,9 @@ exports.createScan = async (req, res) => {
       await UserScan.create({
         user: userId,
         imageHash,
-        analysis: analysis._id
+        analysis: analysis._id,
+        title,
+        thumbnail: thumbnailBase64
       })
 
       // Return cached results without re-analyzing
@@ -74,7 +85,9 @@ exports.createScan = async (req, res) => {
     await UserScan.create({
       user: userId,
       imageHash,
-      analysis: analysis._id
+      analysis: analysis._id,
+      title,
+      thumbnail: thumbnailBase64
     })
 
     // Response send to the client

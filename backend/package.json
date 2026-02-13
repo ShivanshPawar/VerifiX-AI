@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev" : "npx nodemon server.js"
+    "dev": "npx nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +26,7 @@
     "mime-types": "^3.0.2",
     "mongoose": "^9.1.6",
     "multer": "^2.0.2",
+    "sharp": "^0.34.5",
     "uuid": "^13.0.0"
   }
 }
