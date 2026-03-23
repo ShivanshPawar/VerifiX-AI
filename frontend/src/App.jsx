@@ -1,8 +1,8 @@
-import React from 'react'
+import AppRoutes from './routes/AppRoutes'
 
 const App = () => {
   return (
-    <div className='w-full h-screen bg-black text-white'>App</div>
+    <AppRoutes />
   )
 }
 

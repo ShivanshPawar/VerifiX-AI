@@ -1,1 +1,286 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Shades of primary color */
+    --primary-50: #E6FCFF;
+    --primary-100: #B3F5FF;
+    --primary-200: #80EEFF;
+    --primary-300: #4DE7FF;
+    --primary-400: #1AE0FF;
+    --primary: #00DDFF;
+    /* base */
+    --primary-600: #00B8D4;
+    --primary-700: #0093AA;
+    --primary-800: #006E80;
+    --primary-900: #004A55;
+
+    /* Shades of secondary color */
+    --secondary-50: #E6ECF3;
+    --secondary-100: #B3C7D9;
+    --secondary-200: #80A3BF;
+    --secondary-300: #4D7EA5;
+    --secondary-400: #1A5A8B;
+    --secondary: #00396F;
+    /* base */
+    --secondary-600: #002F5C;
+    --secondary-700: #00264A;
+    --secondary-800: #001C37;
+    --secondary-900: #001225;
+
+    /* --primary: #00DDFF; */
+    /* --secondary: #00396F; */
+    --success: #22c55e;
+    --danger: #ff0000;
+    --warning: #f5e50b;
+    --black: #000000;
+    --white: #ffffff;
+    --gray: #a0a0a0;
+  }
+
+  body {
+    background-color: var(--black);
+    color: var(--white)
+  }
+
+  section {
+    scroll-margin-top: 96px
+  }
+
+}
+
+* {
+  font-family: 'Outfit';
+}
+
+
+/* KyivTypeTitling-Regular */
+@font-face {
+  font-family: 'KTT-Regular';
+  src: url('./assets/fonts/KyivTypeTitling-Regular.otf');
+  font-style: normal;
+  font-weight: normal;
+}
+
+/* KyivTypeTitling-Medium */
+@font-face {
+  font-family: 'KTT-Medium';
+  src: url('./assets/fonts/KyivTypeTitling-Medium.otf');
+  font-style: normal;
+  font-weight: normal;
+}
+
+/* KyivTypeTitling-Bold */
+@font-face {
+  font-family: 'KTT-Bold';
+  src: url('./assets/fonts/KyivTypeTitling-Bold.otf');
+  font-style: normal;
+  font-weight: normal;
+}
+
+/* Outfit - Thin */
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Thin.woff2') format('woff2'),
+    url('./assets/fonts/Outfit-Thin.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Outfit - Light */
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Light.woff2') format('woff2'),
+    url('./assets/fonts/Outfit-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Outfit - Regular */
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Regular.woff2') format('woff2'),
+    url('./assets/fonts/Outfit-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Outfit - Medium */
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Medium.woff2') format('woff2'),
+    url('./assets/fonts/Outfit-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Outfit - Bold */
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Bold.woff2') format('woff2'),
+    url('./assets/fonts/Outfit-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.logo {
+  font-family: 'KTT-Medium' !important;
+  background: linear-gradient(to bottom, #00396F, #00DDFF);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass {
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--white) 8%, transparent),
+      color-mix(in srgb, var(--white) 3%, transparent));
+  border: 1px solid color-mix(in srgb, var(--white) 14%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--white) 30%, transparent) inset,
+    0 20px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-scan {
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--primary) 4%, transparent),
+      color-mix(in srgb, var(--primary) 4%, transparent));
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--white) 12%, transparent) inset,
+    0 20px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@layer scan{
+
+:root {
+  --bg: #05050a;
+
+  /* PRIMARY COLOR SYSTEM */
+  --primary: #00DDFF;
+  --primary-soft: rgba(0, 221, 255, 0.2);
+  --primary-glow: rgba(0, 221, 255, 0.5);
+  --primary-dim: rgba(0, 221, 255, 0.08);
+}
+
+/* GRID */
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image: 
+    linear-gradient(var(--primary-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--primary-dim) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* SCAN */
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 120px;
+  top: -120px;
+  z-index: 3;
+
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 221, 255, 0.2),
+    var(--primary-glow),
+    rgba(0, 221, 255, 0.2),
+    transparent
+  );
+
+  box-shadow:
+    0 0 30px var(--primary-glow),
+    0 0 60px rgba(0, 221, 255, 0.3);
+
+  animation: scan 3s linear infinite;
+}
+
+@keyframes scan {
+  0% {
+    top: -120px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* PULSE */
+.image-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+
+  background: radial-gradient(
+    circle,
+    rgba(0, 221, 255, 0.2),
+    transparent 70%
+  );
+
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* POINTS */
+.scan-points::before,
+.scan-points::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--primary);
+  animation: blink 1.5s infinite alternate;
+}
+
+.scan-points::before {
+  top: 30%;
+  left: 40%;
+}
+
+.scan-points::after {
+  top: 60%;
+  left: 65%;
+}
+
+@keyframes blink {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+}
