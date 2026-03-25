@@ -6,18 +6,15 @@ const User = require("../models/user.model");
 module.exports = async function authMiddleware(req, res, next) {
 
     try {
-        // Extract the authorization header from the request
+         // Prefer Authorization header, fallback to httpOnly cookie
         const authHeader = req.headers.authorization;
+        const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+        const cookieToken = req.cookies?.token || null;
+        const token = bearerToken || cookieToken;
 
-        // Check if authorization header exists and follows "Bearer <token>" format
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                message: "Authentication required"
-            });
+        if (!token) {
+            return res.status(401).json({ message: "Authentication required" });
         }
-
-        // Extract the token from the "Bearer <token>" format
-        const token = authHeader.split(" ")[1];
 
         // Verify and decode the JWT token using the secret key
         const decoded = jwt.verify(token, env.jwt_secret);

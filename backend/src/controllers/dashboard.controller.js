@@ -54,11 +54,10 @@ exports.getDashboard = async (req, res) => {
         const formattedRecent = recentActivity.map(scan => ({
             scanId: scan._id,
             verdict: scan.analysis.verdict,
-            confidence: scan.analysis.score,
+            confidence: scan.analysis.confidencePercent,
             scannedAt: scan.scannedAt,
             title: scan.title,
             thumbnail: scan.thumbnail,
-
         }));
 
         // Shared response

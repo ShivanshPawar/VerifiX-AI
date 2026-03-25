@@ -3,11 +3,14 @@ const router = express.Router()
 
 const authMiddleware = require("../middleware/auth.middleware");
 const upload = require("../middleware/upload.middleware");
-const { createScan } = require("../controllers/scan.controller");
+const { createScan, guestScan } = require("../controllers/scan.controller");
 
 
 // Authenticated route to scan an image for deepfake detection
 router.post("/image", authMiddleware, upload.single("image"), createScan);
+
+// One guest scan before login (cookie-limited)
+router.post("/guest/image", upload.single("image"), guestScan);
 
 module.exports = router;
 

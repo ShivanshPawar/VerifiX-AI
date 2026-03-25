@@ -130,7 +130,7 @@
 
 .logo {
   font-family: 'KTT-Medium' !important;
-  background: linear-gradient(to bottom, #00396F, #00DDFF);
+  background: linear-gradient(to bottom, #00DDFF, #00396F);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -159,128 +159,130 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-@layer scan{
+@layer scan {
 
-:root {
-  --bg: #05050a;
+  :root {
+    --bg: #05050a;
 
-  /* PRIMARY COLOR SYSTEM */
-  --primary: #00DDFF;
-  --primary-soft: rgba(0, 221, 255, 0.2);
-  --primary-glow: rgba(0, 221, 255, 0.5);
-  --primary-dim: rgba(0, 221, 255, 0.08);
-}
+    /* PRIMARY COLOR SYSTEM */
+    --primary: #00DDFF;
+    --primary-soft: rgba(0, 221, 255, 0.2);
+    --primary-glow: rgba(0, 221, 255, 0.5);
+    --primary-dim: rgba(0, 221, 255, 0.08);
+  }
 
-/* GRID */
-.grid-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background-image: 
-    linear-gradient(var(--primary-dim) 1px, transparent 1px),
-    linear-gradient(90deg, var(--primary-dim) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
+  /* GRID */
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image:
+      linear-gradient(var(--primary-dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--primary-dim) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
 
-/* SCAN */
-.scan-line {
-  position: absolute;
-  width: 100%;
-  height: 120px;
-  top: -120px;
-  z-index: 3;
-
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(0, 221, 255, 0.2),
-    var(--primary-glow),
-    rgba(0, 221, 255, 0.2),
-    transparent
-  );
-
-  box-shadow:
-    0 0 30px var(--primary-glow),
-    0 0 60px rgba(0, 221, 255, 0.3);
-
-  animation: scan 3s linear infinite;
-}
-
-@keyframes scan {
-  0% {
+  /* SCAN */
+  .scan-line {
+    position: absolute;
+    width: 100%;
+    height: 120px;
     top: -120px;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
-}
+    z-index: 3;
 
-/* PULSE */
-.image-wrapper::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
+    background: linear-gradient(to bottom,
+        transparent,
+        rgba(0, 221, 255, 0.2),
+        var(--primary-glow),
+        rgba(0, 221, 255, 0.2),
+        transparent);
 
-  background: radial-gradient(
-    circle,
-    rgba(0, 221, 255, 0.2),
-    transparent 70%
-  );
+    box-shadow:
+      0 0 30px var(--primary-glow),
+      0 0 60px rgba(0, 221, 255, 0.3);
 
-  animation: pulse 3s infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
+    animation: scan 3s linear infinite;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
+
+  @keyframes scan {
+    0% {
+      top: -120px;
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
   }
-}
 
-/* POINTS */
-.scan-points::before,
-.scan-points::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--primary);
-  animation: blink 1.5s infinite alternate;
-}
+  /* PULSE */
+  .image-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
 
-.scan-points::before {
-  top: 30%;
-  left: 40%;
-}
+    background: radial-gradient(circle,
+        rgba(0, 221, 255, 0.2),
+        transparent 70%);
 
-.scan-points::after {
-  top: 60%;
-  left: 65%;
-}
-
-@keyframes blink {
-  from {
-    opacity: 0.3;
+    animation: pulse 3s infinite;
   }
-  to {
-    opacity: 1;
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
   }
-}
+
+  /* POINTS */
+  .scan-points::before,
+  .scan-points::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--primary);
+    animation: blink 1.5s infinite alternate;
+  }
+
+  .scan-points::before {
+    top: 30%;
+    left: 40%;
+  }
+
+  .scan-points::after {
+    top: 60%;
+    left: 65%;
+  }
+
+  @keyframes blink {
+    from {
+      opacity: 0.3;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
 
 }

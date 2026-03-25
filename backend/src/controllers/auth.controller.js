@@ -3,11 +3,26 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/user.model');
 
+function getCookieOptions() {
+    return {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: env.cookie_secure
+    };
+}
 
 // Register User Controller
 exports.register = async (req, res) => {
     // Extract email, firstName, lastName, and password from request body
-    const { email, fullName: { firstName, lastName }, password } = req.body;
+    const { email, fullName, password } = req.body;
+    const firstName = fullName?.firstName;
+    const lastName = fullName?.lastName;
+
+    if (!email || !firstName || !lastName || !password) {
+        return res.status(400).json({
+            message: "email, fullName.firstName, fullName.lastName, and password are required"
+        });
+    }
 
     // Check if user with this email already exists in database
     const userExists = await userModel.findOne({ email });
@@ -33,7 +48,7 @@ exports.register = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, env.jwt_secret);
 
     // Set token in HTTP-only cookie for client
-    res.cookie("token", token)
+    res.cookie("token", token, getCookieOptions())
 
     // Send success response with user details
     res.status(201).json({
@@ -71,7 +86,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, env.jwt_secret, { expiresIn: "24h" });
 
     // Set token in HTTP-only cookie
-    res.cookie("token", token)
+    res.cookie("token", token, getCookieOptions())
 
     // Send success response with user details
     res.status(200).json({
@@ -83,3 +98,9 @@ exports.login = async (req, res) => {
         }
     })
 }
+
+exports.logout = (req, res) => {
+    res.clearCookie("token", getCookieOptions());
+    res.clearCookie("guest_scan_used", getCookieOptions());
+    res.status(200).json({ message: "Logged out" });
+};

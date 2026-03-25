@@ -10,4 +10,7 @@ router.post("/register", authController.register);
 // Login Route
 router.post("/login", authController.login);
 
+// Logout — clears auth + guest trial cookies
+router.post("/logout", authController.logout);
+
 module.exports = router;
