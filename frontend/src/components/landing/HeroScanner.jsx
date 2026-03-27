@@ -1,5 +1,5 @@
 import React from 'react'
-import scanImg from '../../assets/images/Hero-img-cropped.svg'
+import scanImg from '../../assets/images/HeroScanImg.avif'
 
 
 const HeroScanner = () => {

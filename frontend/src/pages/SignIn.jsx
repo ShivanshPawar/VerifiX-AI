@@ -1,6 +1,6 @@
 import { Eye, EyeClosed, Undo2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import halfFaceScan from '../assets/images/Gemini_Generated_Image_za0eikza0eikza0e 12.png';
+import halfFaceScan from '../assets/images/SideImg.avif';
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useMemo, useState } from 'react';
@@ -37,10 +37,10 @@ const SignIn = () => {
   }
 
   return (
-    <div className='w-full min-h-screen flex flex-col justify-center items-center gap-5 p-5'>
+    <div className='w-full min-h-screen flex flex-col justify-center items-center gap-5 p-5 sm:p-20 lg:p-5'>
 
       {/* Image */}
-      <div className='grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-300'>
+      <div className='grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-5xl'>
         <div className='w-full relative glass overflow-hidden rounded-2xl'>
           <img className='w-full h-full object-cover' src={halfFaceScan} alt="halfFaceScan" />
           <div className="absolute inset-0 
@@ -51,7 +51,7 @@ const SignIn = () => {
         </div>
 
         {/* Form */}
-        <div className='sm:py-5 bg'>
+        <div className='sm:py-12 bg'>
           <div className='w-full flex flex-col gap-5'>
 
             {/* Back button */}
@@ -64,41 +64,16 @@ const SignIn = () => {
 
             {/* Form heading */}
             <div className='w-full flex flex-col items-center justify-center'>
-              <h1 className='text-3xl font-bold'>Welcome Back</h1>
+              <h1 className='text-3xl font-bold'>Welcome Back to</h1>
+              <h1 className='text-3xl font-bold'>Verifi<span className='logo'>X</span></h1>
               <p className='mt-1 text-(--gray) text-center'>Sign in to verify images and detect deepfakes.</p>
             </div>
 
             {/* Form fields */}
             <form onSubmit={onSubmit} className='space-y-5' action="">
 
-              {/* Full name
-              <div className='space-y-2'>
-                <label className="text-sm text-(--gray)">Full Name</label>
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2'>
-                  <input
-                    className='w-full p-3 glass rounded-lg border'
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First name"
-                    autoComplete='given-name'
-                    required
-                  />
-
-                  <input
-                    type="text"
-                    className='w-full p-3 glass rounded-lg border'
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder='Last name'
-                    autoComplete='family-name'
-                    required
-                  />
-                </div>
-              </div> */}
-
               {/* Email */}
-              <div className='space-y-2'>
+              <div>
                 <label className="text-sm text-(--gray)">Email</label>
                 <input
                   className='w-full p-3 glass rounded-lg border mt-2'
@@ -112,7 +87,7 @@ const SignIn = () => {
               </div>
 
               {/* Password */}
-              <div className='space-y-2'>
+              <div>
                 <label className="text-sm text-(--gray)">Password</label>
                 <div className='relative'>
                   <input
@@ -144,7 +119,7 @@ const SignIn = () => {
               <button
                 type='submit'
                 disabled={!canSubmit || isSubmitting}
-                className='w-full p-3 rounded-lg bg-linear-to-t from-(--primary)/90 to-(--secondary)/90 text-lg'
+                className='w-full p-3 rounded-lg font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 text-lg mt-3 hover:bg-(--primary) transition-all cursor-pointer'
 
               >
                 {isSubmitting ? 'Signing in...' : 'Sign In'}

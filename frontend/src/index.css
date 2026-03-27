@@ -286,3 +286,10 @@
   }
 
 }
+
+/* Scan-page styles */
+@layer scan{
+  .history-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+}

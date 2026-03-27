@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Eye, EyeClosed, Undo2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import halfFaceScan from '../assets/images/Gemini_Generated_Image_za0eikza0eikza0e 12.png';
+import halfFaceScan from '../assets/images/SideImg.avif';
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -48,10 +48,10 @@ const SignUp = () => {
 
 
   return (
-    <div className='w-full min-h-screen flex flex-col justify-center items-center gap-5 p-5'>
+    <div className='w-full min-h-screen flex flex-col justify-center items-center gap-5 p-5 sm:p-20 lg:p-5'>
 
       {/* Image */}
-      <div className='grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-300'>
+      <div className='grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-5xl'>
         <div className='w-full relative glass overflow-hidden rounded-2xl'>
           <img className='w-full h-full object-cover' src={halfFaceScan} alt="halfFaceScan" />
           <div className="absolute inset-0 
@@ -155,7 +155,7 @@ const SignUp = () => {
               <button
                 type='submit'
                 disabled={!canSubmit || isSubmitting}
-                className='w-full p-3 rounded-lg bg-linear-to-t from-(--primary)/90 to-(--secondary)/90 text-lg'
+                className='w-full p-3 rounded-lg font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 text-lg hover:bg-(--primary) transition-all cursor-pointer '
 
               >
                 {isSubmitting ? 'Creating…' : 'Create account'}

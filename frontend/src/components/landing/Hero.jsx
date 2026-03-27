@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -25,12 +26,12 @@ const Hero = () => {
 
         {/* Call-to-Action Buttons */}
         <div className='mt-6 p-2 rounded-xl glass sm:mt-8 lg:mt-10 flex justify-center lg:justify-start'>
-          <button className='bg-linear-to-t from-(--primary)/90 to-(--secondary)/90 text-(--white) py-2 px-4 rounded-lg font-semi-bold text-sm sm:text-base'>
+          <Link to="/signup" className='bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 text-(--white) py-2 px-4 rounded-lg font-semibold text-sm sm:text-base hover:bg-(--primary) transition-all'>
             Get Started
-          </button>
-          <button className='py-2 px-5 rounded-xl font-semi-bold text-sm sm:text-base'>
+          </Link>
+          <Link to="/scan" className='py-2 px-5 rounded-xl font-semibold text-sm text-(--gray) hover:text-(--white) sm:text-base'>
             Test-Scan
-          </button>
+          </Link>
         </div>
 
       </div>
