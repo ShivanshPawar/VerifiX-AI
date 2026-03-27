@@ -5,7 +5,6 @@ import SignIn from './../pages/SignIn';
 import Scan from "../pages/Scan";
 import History from "../pages/History";
 import HistoryDetail from "../pages/HistoryDetail";
-import Dashboard from "../pages/DashBoard";
 
 const AppRoutes = () => {
     return (
@@ -14,6 +13,8 @@ const AppRoutes = () => {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/scan" element={<Scan />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/history/:id" element={<HistoryDetail />} />
         </Routes>
     )
 }

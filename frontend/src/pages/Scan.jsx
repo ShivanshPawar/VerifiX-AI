@@ -14,7 +14,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
-import { Expand, ImageUp, Minimize2, PanelLeftOpen, PanelRightClose } from 'lucide-react'
+import { History, ImageUp, Minimize2 } from 'lucide-react'
 
 // key for remembering sidebar open state and store it in local storage
 const SIDEBAR_KEY = 'verifix_scan_sidebar_open'
@@ -245,7 +245,7 @@ const Scan = () => {
             <Navbar />
 
             {/* Guest mode strip */}
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-24 pb-12">
+            <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-24 pb-12">
                 {!isAuthenticated && (
                     <div className="mb-6 rounded-2xl border border-(--primary)/30 bg-(--primary)/10 px-4 py-3 text-sm text-(--gray) text-center">
                         <span className="text-(--white) font-semibold">Guest mode:</span> includes one free scan.{' '}
@@ -325,17 +325,16 @@ const Scan = () => {
                                 <button
                                     type="button"
                                     onClick={toggleSidebar}
-                                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-(--gray) hover:text-(--white) text-sm font-semibold glass glass-hover"
-                                    title="Show History"
+                                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-(--gray) hover:text-(--white) text-sm font-semibold glass"
                                 >
-                                    <Expand className='w-5' /> Show history
+                                    <History className='w-5' /> Show history
                                 </button>
                             </div>
                         )}
 
                         {/* Upload + Preview side-by-side */}
-                        <div className="grid gap-6 lg:grid-cols-2">
-                            <div className="glass rounded-2xl p-6 sm:p-8">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+                            <div className="glass rounded-2xl p-5 sm:p-6">
                                 <div className="flex flex-col items-start justify-between">
                                     {/* <div> */}
                                     <h1 className="text-2xl sm:text-3xl font-black">Scan with Verifi<span className='logo'>X</span></h1>
@@ -418,7 +417,7 @@ const Scan = () => {
                                 </div>
                                 <div className="mt-4 rounded-2xl border border-(--white)/10 overflow-hidden bg-(--black)">
                                     {previewUrl ? (
-                                        <img src={previewUrl} alt="Preview" className="w-full h-70 sm:h-110 object-cover" />
+                                        <img src={previewUrl} alt="Preview" className="w-full h-70 sm:h-110 object-contain" />
                                     ) : (
                                         <div className="h-70 sm:h-110 flex items-center justify-center text-(--gray)">
                                             No image selected
@@ -434,7 +433,7 @@ const Scan = () => {
                                 <div className="glass glass-ring rounded-2xl p-5 sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-4">
                                         <div>
-                                            <div className="text-sm font-semibold text-(--white)">Model scores</div>
+                                            <div className="text-sm font-semibold text-(--white)">Multi-Model Scores</div>
                                             <div className="mt-1 text-xs text-(--gray)">
                                                 Bars left → right: lowest to highest score (0–100%)
                                             </div>
@@ -443,29 +442,29 @@ const Scan = () => {
                                     </div>
 
                                     {modelChartData.length ? (
-                                        <div className="mt-4 h-[min(420px,55vh)] w-full min-h-70">
+                                        <div className="mt-10 h-[min(420px,55vh)] w-full min-h-70">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart
                                                     data={modelChartData}
-                                                    margin={{ top: 12, right: 16, left: 8, bottom: 64 }}
+                                                    margin={{ top: 20, right: 20, left: 0, bottom: 64 }}
                                                     barCategoryGap="12%"
                                                 >
                                                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
                                                     <XAxis
                                                         dataKey="name"
                                                         type="category"
-                                                        tick={{ fill: 'rgba(255,255,255,0.65)', fontSize: 11 }}
+                                                        tick={{ fill: 'rgba(255,255,255,0.65)', fontSize: 10 }}
                                                         axisLine={{ stroke: 'rgba(255,255,255,0.10)' }}
                                                         tickLine={{ stroke: 'rgba(255,255,255,0.10)' }}
                                                         interval={0}
-                                                        angle={-28}
+                                                        angle={-90}
                                                         textAnchor="end"
-                                                        height={70}
+                                                        height={50}
                                                     />
                                                     <YAxis
                                                         type="number"
                                                         domain={[0, 100]}
-                                                        tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }}
+                                                        tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 10 }}
                                                         axisLine={{ stroke: 'rgba(255,255,255,0.10)' }}
                                                         tickLine={{ stroke: 'rgba(255,255,255,0.10)' }}
                                                         label={{
@@ -473,7 +472,7 @@ const Scan = () => {
                                                             angle: -90,
                                                             position: 'insideLeft',
                                                             fill: 'rgba(255,255,255,0.45)',
-                                                            fontSize: 11,
+                                                            fontSize: 10,
                                                         }}
                                                     />
                                                     <Tooltip
@@ -487,10 +486,10 @@ const Scan = () => {
                                                                 <div
                                                                     className="rounded-xl px-3 py-2.5 shadow-2xl backdrop-blur-md max-w-65"
                                                                     style={{
-                                                                        borderWidth: 2,
-                                                                        borderStyle: 'solid',
-                                                                        borderColor: signal,
-                                                                        background: 'rgba(8, 10, 16, 0.96)',
+                                                                        // borderWidth: 2,
+                                                                        // borderStyle: 'solid',
+                                                                        // borderColor: signal,
+                                                                        background: 'rgba(8, 10, 16, 0.90)',
                                                                     }}
                                                                 >
                                                                     <div
@@ -610,7 +609,7 @@ const Scan = () => {
                             </div>
                         ) : (
                             <p className="mt-8 text-center text-sm text-(--gray)">
-                                Run analysis to see charts and the full report below.
+                                Run analysis to view detailed insights.
                             </p>
                         )}
                     </div>

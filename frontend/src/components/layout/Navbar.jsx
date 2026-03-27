@@ -11,28 +11,28 @@ const Navbar = () => {
                 </Link>
 
                 {/* Navigation */}
-                <div className="hidden md:flex items-center gap-8 text-(--gray) text-sm">
-                    <Link to="/" className="hover:text-(--white) transition">
+                <div className="hidden md:flex items-center gap-8 text-(--white)/70 text-sm">
+                    <Link to="/" className="hover:text-(--white) transition-all">
                         Home
                     </Link>
 
-                    <Link to="/scan" className="hover:text-(--white) transition">
+                    <Link to="/scan" className="hover:text-(--white) transition-all">
                         Scan
                     </Link>
 
-                    <Link to="/history" className="hover:text-(--white) transition">
+                    <Link to="/history" className="hover:text-(--white) transition-all">
                         History
                     </Link>
 
-                    <a href="#features" className="hover:text-(--white) transition">
+                    <a href="#features" className="hover:text-(--white) transition-all">
                         Features
                     </a>
 
-                    <a href="#how-it-works" className="hover:text-(--white) transition">
+                    <a href="#how-it-works" className="hover:text-(--white) transition-all">
                         How it Works
                     </a>
 
-                    <a href="#cta" className="hover:text-(--white) transition">
+                    <a href="#cta" className="hover:text-(--white) transition-all">
                         Get started
                     </a>
                 </div>
@@ -40,7 +40,7 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center gap-3">
                     <Link
                         to="/signin"
-                        className="inline-flex items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold text-(--gray) hover:text-(--white) transition"
+                        className="inline-flex items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold text-(--white)/70 hover:text-(--white) transition-all"
                     >
                         Sign in
                     </Link>
@@ -56,7 +56,7 @@ const Navbar = () => {
                     <div className="flex items-center gap-2">
                         <Link
                             to="/signin"
-                            className="inline-flex items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold glass glass-hover"
+                            className="inline-flex items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold glass"
                         >
                             Sign in
                         </Link>
