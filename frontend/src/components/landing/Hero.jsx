@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
-    <section id='hero' className='relative w-full pt-25'>
+    <section id='hero' className='relative  w-full pt-25'>
       <div className='w-full flex flex-col items-center pt-10 px-4 md:px-10 lg:px-40'>
 
         {/* Tagline */}
@@ -14,7 +14,7 @@ const Hero = () => {
 
         {/* Main Heading */}
         <h1 className='mt-6 sm:mt-8 lg:mt-10 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center leading tracking-tight text-(--white)'>
-          <span className='block'>Deepfakes Are Rising</span> <span className='block'><span className='italic font-light text'>Verification</span> Matters</span>
+          <span className='block'>Deepfakes Are Rising</span> <span className='block'>Verification Matters</span>
         </h1>
 
         {/* Subheading */}
@@ -25,11 +25,11 @@ const Hero = () => {
         </p>
 
         {/* Call-to-Action Buttons */}
-        <div className='mt-6 p-2 rounded-xl glass sm:mt-8 lg:mt-10 flex justify-center lg:justify-start'>
+        <div className='mt-6 p-2 rounded-xl glass sm:mt-8 lg:mt-10 flex justify-between items-center lg:justify-start'>
           <Link to="/signup" className='bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 text-(--white) py-2 px-4 rounded-lg font-semibold text-sm sm:text-base hover:bg-(--primary) transition-all'>
             Get Started
           </Link>
-          <Link to="/scan" className='py-2 px-5 rounded-xl font-semibold text-sm text-(--gray) hover:text-(--white) sm:text-base'>
+          <Link to="/scan" className='py-2 px-4 rounded-xl font-semibold text-sm text-(--gray) hover:text-(--white) sm:text-base'>
             Test-Scan
           </Link>
         </div>

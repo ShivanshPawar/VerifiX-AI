@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import { api } from '../lib/api'
+import { CloudAlert } from 'lucide-react'
 
 const History = () => {
     const [items, setItems] = useState([])
@@ -30,7 +31,7 @@ const History = () => {
                 navigate('/signin', { replace: true })
                 return
             }
-            setError(err?.response?.data?.message ?? 'Failed to fetch history.')
+            setError(err?.response?.data?.message ?? 'Unable to load history.')
         } finally {
             setLoading(false)
         }
@@ -64,7 +65,7 @@ const History = () => {
         <div className="min-h-screen bg-(--black) text-(--white)">
             <Navbar />
 
-            <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-24 pb-12">
+            <div className="mx-auto max-w-6xl px-5 sm:px-15 pt-24 pb-12">
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-3xl sm:text-4xl font-black tracking-tight">History</h1>
@@ -72,15 +73,15 @@ const History = () => {
                     </div>
                     <Link
                         to="/scan"
-                        className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 hover:bg-(--primary) transition-all"
+                        className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 hover:bg-(--primary) transition-all"
                     >
                         New scan
                     </Link>
                 </div>
 
                 {error ? (
-                    <div className="mt-6 rounded-2xl p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
-                        {error}
+                    <div className="mt-6 rounded-2xl flex items-center gap-2 p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
+                        <CloudAlert /> {error}
                     </div>
                 ) : null}
 
@@ -123,14 +124,14 @@ const History = () => {
                                     <div className="flex gap-2">
                                         <Link
                                             to={`/history/${it.scanId}`}
-                                            className="rounded-full px-3 py-1.5 text-xs font-semibold glass"
+                                            className="rounded-full px-3 py-1.5 text-xs font-semibold glass hover:scale-105 cursor-pointer transition-all"
                                         >
                                             Details
                                         </Link>
                                         <button
                                             type="button"
                                             onClick={() => onDelete(it.scanId)}
-                                            className="rounded-full px-3 py-1.5 text-xs font-semibold border border-(--danger)/40 bg-(--danger)/10 text-(--danger)"
+                                            className="rounded-full px-3 py-1.5 text-xs font-semibold border border-(--danger)/40 bg-(--danger)/10 text-(--danger) hover:scale-105 cursor-pointer transition-all"
                                         >
                                             Delete
                                         </button>
@@ -150,7 +151,7 @@ const History = () => {
                             type="button"
                             disabled={page <= 1 || loading}
                             onClick={() => load(page - 1)}
-                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
                         >
                             Prev
                         </button>
@@ -158,7 +159,7 @@ const History = () => {
                             type="button"
                             disabled={page >= totalPages || loading}
                             onClick={() => load(page + 1)}
-                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
                         >
                             Next
                         </button>

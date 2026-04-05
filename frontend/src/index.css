@@ -49,6 +49,14 @@
 
 }
 
+
+.outfit {
+  font-family: "Outfit", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
 * {
   font-family: 'Outfit';
   user-select: none;
@@ -289,7 +297,7 @@
 }
 
 /* Scan-page styles */
-@layer scan{
+@layer scan {
   .history-sidebar::-webkit-scrollbar {
     display: none;
   }

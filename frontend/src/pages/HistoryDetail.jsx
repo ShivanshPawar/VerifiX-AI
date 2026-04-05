@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import { api } from '../lib/api'
-import { Undo2 } from 'lucide-react'
+import { CloudAlert, Undo2 } from 'lucide-react'
 
 const HistoryDetail = () => {
     const { id } = useParams()
@@ -27,7 +27,7 @@ const HistoryDetail = () => {
                     navigate('/signin', { replace: true })
                     return
                 }
-                setError(err?.response?.data?.message ?? 'Failed to fetch scan details.')
+                setError(err?.response?.data?.message ?? 'Unable to load scan details')
             } finally {
                 if (alive) setLoading(false)
             }
@@ -49,19 +49,19 @@ const HistoryDetail = () => {
         <div className="min-h-screen bg-(--black) text-(--white)">
             <Navbar />
 
-            <div className="mx-auto max-w-4xl px-5 sm:px-6 pt-24 pb-12">
+            <div className="mx-auto max-w-4xl px-5 sm:px-15 pt-24 pb-12">
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Scan details</h1>
                         <p className="mt-2 text-(--gray)">Full report and confidence.</p>
                     </div>
-                    <div className="flex glass p-2 rounded-xl gap-2">
-                        <Link to="/history" className=" sm:px-2 py-2 text-sm font-semibold text-(--white)/80 hover:text-(--white) transition-all">
-                            <Undo2 />
+                    <div className="flex gap-2">
+                        <Link to="/history" title='Back' className="px-2.5 rounded-full glass inline-flex items-center text-sm font-semibold text-(--white)/80 hover:text-(--white) transition-all">
+                            <Undo2 className='w-5' />
                         </Link>
                         <Link
                             to="/scan"
-                            className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 hover:bg-(--primary) transition-all"
+                            className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold bg-linear-to-t from-(--primary)/80 to-(--secondary)/80 hover:bg-(--primary) transition-all"
                         >
                             New scan
                         </Link>
@@ -71,8 +71,8 @@ const HistoryDetail = () => {
                 {loading ? (
                     <div className="mt-6 glass rounded-2xl p-6 text-(--gray)">Loading…</div>
                 ) : error ? (
-                    <div className="mt-6 glass rounded-2xl p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--white) text-sm">
-                        {error}
+                    <div className="mt-6 flex items-center gap-2 rounded-2xl p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
+                        <CloudAlert /> {error}
                     </div>
                 ) : (
                     <div className="mt-6 space-y-5">

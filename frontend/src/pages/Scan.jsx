@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
@@ -14,7 +14,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
-import { History, ImageUp, Minimize2 } from 'lucide-react'
+import { CloudAlert, History, ImageUp, Minimize2 } from 'lucide-react'
 
 // key for remembering sidebar open state and store it in local storage
 const SIDEBAR_KEY = 'verifix_scan_sidebar_open'
@@ -125,7 +125,7 @@ const Scan = () => {
             if (status === 403) {
                 setError(
                     err?.response?.data?.message ??
-                    'Free trial used. Sign up or sign in to scan more images.'
+                    'Test scan used. Sign in or sign up to continue.'
                 )
                 return
             }
@@ -247,7 +247,7 @@ const Scan = () => {
             {/* Guest mode strip */}
             <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-24 pb-12">
                 {!isAuthenticated && (
-                    <div className="mb-6 rounded-2xl border border-(--primary)/30 bg-(--primary)/10 px-4 py-3 text-sm text-(--gray) text-center">
+                    <div className="mb-6 rounded-2xl border border-(--primary)/30 bg-(--primary)/15 px-4 py-3 text-sm text-(--gray) text-center">
                         <span className="text-(--white) font-semibold">Guest mode:</span> includes one free scan.{' '}
                         <Link to="/signup" className="text-(--primary) underline font-medium">
                             Create an account
@@ -346,8 +346,8 @@ const Scan = () => {
 
                                 <form onSubmit={onSubmit} className="mt-6 space-y-4">
                                     {error ? (
-                                        <div className="rounded-lg p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
-                                            {error}
+                                        <div className="rounded-lg flex gap-2 items-center p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
+                                            <CloudAlert /> {error}
                                         </div>
                                     ) : null}
 
@@ -375,7 +375,7 @@ const Scan = () => {
                                             onDrop={onDropFile}
                                             className={`glass rounded-lg border-2 border-dashed p-3 transition ${dragActive
                                                 ? 'border-(--primary)/70 bg-(--primary)/10'
-                                                : 'border-white/15'
+                                                : 'border-(--white)/15'
                                                 }`}
                                         >
                                             <div

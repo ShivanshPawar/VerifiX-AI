@@ -51,7 +51,7 @@ const SignIn = () => {
         </div>
 
         {/* Form */}
-        <div className='sm:py-12 bg'>
+        <div className='sm:py-12'>
           <div className='w-full flex flex-col gap-5'>
 
             {/* Back button */}
@@ -87,7 +87,7 @@ const SignIn = () => {
               </div>
 
               {/* Password */}
-              <div>
+              <div className='space-y-1'>
                 <label className="text-sm text-(--gray)">Password</label>
                 <div className='relative'>
                   <input
@@ -104,7 +104,8 @@ const SignIn = () => {
                     onClick={() => setShowPassword((s) => !s)}
                     className='absolute right-2 top-1/2 -translate-2 text-sm text-(--gray)'
                   >
-                    {showPassword ? <EyeClosed /> : <Eye />}
+
+                    {showPassword ? <Eye /> : <EyeClosed />}
                   </button>
                 </div>
 
