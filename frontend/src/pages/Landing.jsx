@@ -8,9 +8,6 @@ import Footer from './../components/layout/Footer';
 import Problem from './../components/landing/Problem';
 import Process from '../components/landing/Process';
 import Solution from '../components/landing/Solution';
-import shape1 from '../assets/svgs/hero-shape-1.svg'
-import shape2 from '../assets/svgs/hero-shape-2.svg'
-import shape3 from '../assets/svgs/hero-star-shape-1.svg'
 
 const Landing = () => {
   return (
@@ -32,11 +29,14 @@ const Landing = () => {
         {/* Solution Section */}
         <Solution />
 
+        {/* Features */}
+        <Features />
+        
         {/* How It Works Section */}
         <Process />
 
-        {/* Features */}
-        <Features />
+        {/* Trust Section */}
+        <Trust />
 
         {/* CTA */}
         <CTA />

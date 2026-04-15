@@ -2,45 +2,52 @@ const { generateImageHash } = require("../utils/hash.util");
 const { analyzeImage } = require("../services/realityDefender.service");
 const { generateScanReport } = require("../services/geminiReport.service");
 const ImageAnalysis = require("../models/imageAnalysis.model");
-const UserScan = require("../models/userScan.model")
+const UserScan = require("../models/userScan.model");
 const sharp = require("sharp");
 const env = require("../config/env");
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MODEL_DISPLAY_NAMES = {
+  "rd-img-ensemble": "Final AI Verdict",
+  "rd-context-img": "Context Analysis",
+  "rd-pine-img": "Facial Integrity Check",
+  "rd-full-pine-img": "Advanced Facial Analysis",
+  "rd-elm-img": "Texture Analysis",
+  "rd-full-elm-img": "Detailed Texture Scan",
+  "rd-oak-img": "Artifact Detection",
+  "rd-full-oak-img": "Advanced Artifact Detection",
+  "rd-cedar-img": "Image Consistency Check",
+  "rd-full-cedar-img": "Deep Consistency Analysis",
+};
+
+// ─── Private helpers ──────────────────────────────────────────────────────────
+
 function guestCookieOptions() {
-  return {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: env.cookie_secure,
-  };
+  return { httpOnly: true, sameSite: "lax", secure: env.cookie_secure };
 }
 
+/** Normalize raw RD model list into a clean, client-safe shape with display names. */
 function normalizeRdModels(raw) {
   const models = raw?.models;
   if (!models) return [];
 
-  // RD SDK typically returns an array; handle object map as well.
   const list = Array.isArray(models)
     ? models
     : Object.entries(models).map(([name, value]) => ({ name, ...value }));
 
   return list
     .map((m) => {
-      const name = m?.name ?? m?.model ?? m?.id ?? m?.key ?? "Model";
+      const name = String(m?.name ?? m?.model ?? m?.id ?? m?.key ?? "");
       const status = m?.status ?? m?.verdict ?? m?.label ?? m?.result ?? null;
-      const scoreLike =
-        typeof m?.score === "number"
-          ? m.score
-          : (typeof m?.confidence === "number" ? m.confidence : null);
 
-      // Normalize to 0–100 always:
-      // - If field already looks like percent (>1), keep as-is.
-      // - If it looks like 0–1, convert to percent.
+      const scoreLike =
+        typeof m?.score === "number" ? m.score :
+          typeof m?.confidence === "number" ? m.confidence : null;
+
       const rawPercent =
-        typeof m?.confidence_percent === "number"
-          ? m.confidence_percent
-          : typeof scoreLike === "number"
-            ? (scoreLike > 1 ? scoreLike : scoreLike * 100)
-            : null;
+        typeof m?.confidence_percent === "number" ? m.confidence_percent :
+          typeof scoreLike === "number" ? (scoreLike > 1 ? scoreLike : scoreLike * 100) : null;
 
       const confidence_percent =
         typeof rawPercent === "number"
@@ -48,124 +55,101 @@ function normalizeRdModels(raw) {
           : null;
 
       return {
-        name: String(name),
+        name,
+        display_name: MODEL_DISPLAY_NAMES[name.toLowerCase()] ?? name,
         status: status ? String(status) : null,
         confidence_percent,
-        raw: m
       };
     })
     .filter((m) => m.name);
 }
+
+/** Generate a small compressed thumbnail and return it as a base64 string. */
+async function generateThumbnail(buffer) {
+  const thumbnailBuffer = await sharp(buffer)
+    .resize(120, 120)
+    .jpeg({ quality: 35 })
+    .toBuffer();
+  return thumbnailBuffer.toString("base64");
+}
+
+/**
+ * Look up a cached analysis or run a fresh one.
+ * Returns { analysis, models, source }.
+ */
+async function getOrCreateAnalysis(imageHash, buffer, originalName) {
+  const cached = await ImageAnalysis.findOne({ imageHash });
+  if (cached) {
+    return {
+      analysis: cached,
+      models: normalizeRdModels(cached.aiRawResponse),
+      source: "CACHE",
+    };
+  }
+
+  const rdResult = await analyzeImage(buffer, originalName);
+  const verdict = rdResult.verdict;
+  const confidencePercent = Math.round(rdResult.score * 100);
+  const aiRawResponse = rdResult.raw;
+  const models = normalizeRdModels(aiRawResponse);
+
+  const report = await generateScanReport({
+    verdict,
+    score: confidencePercent,
+    aiRawResponse,
+  });
+
+  const analysis = await ImageAnalysis.create({
+    imageHash,
+    verdict,
+    confidencePercent,
+    report,
+    aiRawResponse,
+  });
+
+  return { analysis, models, source: "NEW_ANALYSIS" };
+}
+
+// ─── Controllers ──────────────────────────────────────────────────────────────
+
 exports.createScan = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "Image is required" });
+  }
 
-  // Simplify cleint messege
   const userId = req.user.id;
-  const buffer = req.file.buffer;
-  const originalName = req.file.originalname
-  const title = req.body.title || "Untitled Scan";
+  const { buffer, originalname: originalName } = req.file;
+  const title = req.body.title?.trim() || "Untitled Scan";
+
   try {
+    const imageHash = generateImageHash(buffer);
+    const thumbnail = await generateThumbnail(buffer);
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Image is required" });
-    }
+    const { analysis, models, source } = await getOrCreateAnalysis(imageHash, buffer, originalName);
 
-    // Generate hash
-    const imageHash = generateImageHash(req.file.buffer);
-
-    // Generate small compressed thumbnail (per user)
-    const thumbnailBuffer = await sharp(buffer)
-      .resize(120, 120)
-      .jpeg({ quality: 35 })
-      .toBuffer();
-
-    const thumbnailBase64 = thumbnailBuffer.toString("base64");
-
-    // Checks the image hash already exists in database 
-    let analysis = await ImageAnalysis.findOne({ imageHash })
-
-    // If image hash already exists in database, use cached analysis
-    if (analysis) {
-      // Create a user scan record linking user to existing analysis
-      await UserScan.create({
-        user: userId,
-        imageHash,
-        analysis: analysis._id,
-        title,
-        thumbnail: thumbnailBase64
-      })
-
-      // Return cached results without re-analyzing
-      const models = normalizeRdModels(analysis.aiRawResponse);
-      return res.json({
-        message: "Scan Completed",
-        source: "CACHE",
-        verdict: analysis.verdict,
-        confidence_percent: analysis.confidencePercent,
-        manipulation_type: analysis.manipulationType,
-        report: analysis.report,
-        models,
-        raw_result: analysis.aiRawResponse
-      });
-    }
-
-    // AI Detection (SYNC) Reality Defender
-    const rdResult = await analyzeImage(
-      buffer,
-      originalName
-    );
-
-    // simplification
-    const verdict = rdResult.verdict;
-    const confidencePercent = Math.round(rdResult.score * 100);
-    const aiRawResponse = rdResult.raw
-    const models = normalizeRdModels(aiRawResponse);
-
-    // AI Report Generation 
-    const report = await generateScanReport({
-      verdict: verdict,
-      score: confidencePercent,
-      aiRawResponse: aiRawResponse,
-    })
-
-    // Save global analysis
-    analysis = await ImageAnalysis.create({
-      imageHash,
-      verdict,
-      confidencePercent,
-      report,
-      aiRawResponse
-    })
-
-    // Save user history
     await UserScan.create({
       user: userId,
       imageHash,
       analysis: analysis._id,
       title,
-      thumbnail: thumbnailBase64
-    })
+      thumbnail,
+    });
 
-    // Response send to the client
     return res.status(200).json({
       message: "Scan completed",
-      source: "NEW_ANALYSIS",
-      verdict,
-      confidence_percent: confidencePercent,
-      report,
+      source,
+      verdict: analysis.verdict,
+      confidence_percent: analysis.confidencePercent,
+      manipulation_type: analysis.manipulationType ?? null,
+      report: analysis.report,
       models,
-      raw_result: aiRawResponse
-    })
-
-
-  } catch (error) {
-    return res.status(500).json({
-      message: "Scan failed",
-      error: error.message,
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Scan failed", error: error.message });
   }
 };
 
-/** One free scan before sign-up: no auth; does not create UserScan; sets guest_scan_used cookie after success */
+/** One free scan before sign-up — no auth, no UserScan record, sets a cookie on success. */
 exports.guestScan = async (req, res) => {
   if (req.cookies?.guest_scan_used === "1") {
     return res.status(403).json({
@@ -173,79 +157,32 @@ exports.guestScan = async (req, res) => {
     });
   }
 
-  const buffer = req.file?.buffer;
-  const originalName = req.file?.originalname || "upload.jpg";
+  if (!req.file) {
+    return res.status(400).json({ message: "Image is required" });
+  }
+
+  const { buffer, originalname: originalName = "upload.jpg" } = req.file;
 
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "Image is required" });
-    }
+    const imageHash = generateImageHash(buffer);
+    const thumbnail = await generateThumbnail(buffer);
 
-    const imageHash = generateImageHash(req.file.buffer);
-
-    const thumbnailBuffer = await sharp(buffer)
-      .resize(120, 120)
-      .jpeg({ quality: 35 })
-      .toBuffer();
-
-    const thumbnailBase64 = thumbnailBuffer.toString("base64");
-
-    let analysis = await ImageAnalysis.findOne({ imageHash });
-
-    if (analysis) {
-      const models = normalizeRdModels(analysis.aiRawResponse);
-      res.cookie("guest_scan_used", "1", guestCookieOptions());
-      return res.json({
-        message: "Scan Completed",
-        source: "CACHE",
-        guest: true,
-        verdict: analysis.verdict,
-        confidence_percent: analysis.confidencePercent,
-        manipulation_type: analysis.manipulationType,
-        report: analysis.report,
-        models,
-        raw_result: analysis.aiRawResponse,
-        thumbnail_preview: thumbnailBase64,
-      });
-    }
-
-    const rdResult = await analyzeImage(buffer, originalName);
-    const verdict = rdResult.verdict;
-    const confidencePercent = Math.round(rdResult.score * 100);
-    const aiRawResponse = rdResult.raw;
-    const models = normalizeRdModels(aiRawResponse);
-
-    const report = await generateScanReport({
-      verdict: verdict,
-      score: confidencePercent,
-      aiRawResponse: aiRawResponse,
-    });
-
-    analysis = await ImageAnalysis.create({
-      imageHash,
-      verdict,
-      confidencePercent,
-      report,
-      aiRawResponse,
-    });
+    const { analysis, models, source } = await getOrCreateAnalysis(imageHash, buffer, originalName);
 
     res.cookie("guest_scan_used", "1", guestCookieOptions());
 
     return res.status(200).json({
       message: "Scan completed",
-      source: "NEW_ANALYSIS",
+      source,
       guest: true,
-      verdict,
-      confidence_percent: confidencePercent,
-      report,
+      verdict: analysis.verdict,
+      confidence_percent: analysis.confidencePercent,
+      manipulation_type: analysis.manipulationType ?? null,
+      report: analysis.report,
       models,
-      raw_result: aiRawResponse,
-      thumbnail_preview: thumbnailBase64,
+      thumbnail_preview: thumbnail,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "Scan failed",
-      error: error.message,
-    });
+    return res.status(500).json({ message: "Scan failed", error: error.message });
   }
 };

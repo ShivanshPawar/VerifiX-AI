@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
@@ -16,11 +16,35 @@ import {
 } from 'recharts'
 import { CloudAlert, History, ImageUp, Minimize2 } from 'lucide-react'
 
-// key for remembering sidebar open state and store it in local storage
+// ─── Constants & pure helpers (outside component — never recreated) ───────────
+
 const SIDEBAR_KEY = 'verifix_scan_sidebar_open'
 
+
+const barColorForStatus = (status) => {
+    const s = String(status || '').toUpperCase()
+    if (s.includes('AUTH')) return 'var(--success)'
+    if (s.includes('MANIP')) return 'var(--danger)'
+    if (s.includes('SUSP') || s.includes('INCON')) return 'var(--warning)'
+    return 'var(--primary)'
+}
+
+const verdictColorClass = (verdict) => {
+    if (verdict === 'AUTHENTIC') return 'text-(--success)'
+    if (verdict === 'MANIPULATED') return 'text-(--danger)'
+    if (verdict === 'SUSPICIOUS' || verdict === 'INCONCLUSIVE') return 'text-(--warning)'
+    return 'text-(--white)'
+}
+
+const truncateTitle = (title, maxWords = 5) => {
+    const words = (title || 'Untitled scan').split(' ')
+    return words.length > maxWords ? `${words.slice(0, maxWords).join(' ')}...` : words.join(' ')
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const Scan = () => {
-    const { user, isAuthenticated } = useAuth()
+    const { isAuthenticated, ready } = useAuth()
     const [title, setTitle] = useState('')
     const [file, setFile] = useState(null)
     const [previewUrl, setPreviewUrl] = useState('')
@@ -31,78 +55,50 @@ const Scan = () => {
     const [historyLoading, setHistoryLoading] = useState(false)
     const [dragActive, setDragActive] = useState(false)
     const [sidebarOpen, setSidebarOpen] = useState(() => {
-        try {
-            return localStorage.getItem(SIDEBAR_KEY) !== 'false'
-        } catch {
-            return true
-        }
+        try { return localStorage.getItem(SIDEBAR_KEY) !== 'false' }
+        catch { return true }
     })
-    const navigate = useNavigate()
 
-    const canSubmit = useMemo(() => !!file && !isSubmitting, [file, isSubmitting])
+    const navigate = useNavigate()
+    const inputRef = useRef(null)
+    const canSubmit = !!file && !isSubmitting
 
     const toggleSidebar = () => {
         setSidebarOpen((o) => {
             const next = !o
-            try {
-                localStorage.setItem(SIDEBAR_KEY, String(next))
-            } catch {
-                /* ignore */
-            }
+            try { localStorage.setItem(SIDEBAR_KEY, String(next)) } catch { /* ignore */ }
             return next
         })
     }
 
-    // pick a file from the file picker dialog and show a preview
     const onPickFile = (picked) => {
         setError('')
         setResult(null)
-
         if (!picked) return
-        if (!picked.type?.startsWith('image/')) {
-            setError('Please upload an image file.')
-            return
-        }
-        if (picked.size > 10 * 1024 * 1024) {
-            setError('Image must be under 10 MB.')
-            return
-        }
-
+        if (!picked.type?.startsWith('image/')) { setError('Please upload an image file.'); return }
+        if (picked.size > 10 * 1024 * 1024) { setError('Image must be under 10 MB.'); return }
         setFile(picked)
-        const url = URL.createObjectURL(picked)
-        setPreviewUrl(url)
+        setPreviewUrl(URL.createObjectURL(picked))
     }
 
-    const inputRef = useRef(null);
-
-    // load the user's scan history
-    const loadHistory = async () => {
+    const loadHistory = useCallback(async () => {
         if (!isAuthenticated) return
         setHistoryLoading(true)
         try {
             const res = await api.get('/history', { params: { page: 1, limit: 12 } })
             setHistory(res.data?.data ?? [])
-        } catch (err) {
-            if (err?.response?.status === 401) {
-                setHistory([])
-                return
-            }
+        } catch {
             setHistory([])
         } finally {
             setHistoryLoading(false)
         }
-    }
+    }, [isAuthenticated])
 
-    // submit the image for analysis
     const onSubmit = async (e) => {
         e.preventDefault()
         setError('')
         setResult(null)
-
-        if (!file) {
-            setError('Please choose an image.')
-            return
-        }
+        if (!file) { setError('Please choose an image.'); return }
 
         setIsSubmitting(true)
         try {
@@ -111,143 +107,67 @@ const Scan = () => {
             if (title.trim()) fd.append('title', title.trim())
 
             const endpoint = isAuthenticated ? '/scan/image' : '/scan/guest/image'
-            const res = await api.post(endpoint, fd, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            })
+            const res = await api.post(endpoint, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
             setResult(res.data)
             if (isAuthenticated) loadHistory()
         } catch (err) {
             const status = err?.response?.status
-            if (status === 401) {
-                navigate('/signin', { replace: true })
-                return
-            }
-            if (status === 403) {
-                setError(
-                    err?.response?.data?.message ??
-                    'Test scan used. Sign in or sign up to continue.'
-                )
-                return
-            }
-            const message = err?.response?.data?.message ?? 'Scan failed. Please try again.'
-            setError(message)
+            if (status === 401) { navigate('/signin', { replace: true }); return }
+            if (status === 403) { setError(err?.response?.data?.message ?? 'Test scan used. Sign in or sign up to continue.'); return }
+            setError(err?.response?.data?.message ?? 'Scan failed. Please try again.')
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    // load the history when the user is authenticated
     useEffect(() => {
         if (isAuthenticated) loadHistory()
         else setHistory([])
-    }, [isAuthenticated])
+    }, [isAuthenticated, loadHistory])
 
-    const verdictColorClass = useMemo(() => {
-        const v = result?.verdict
-        if (v === 'AUTHENTIC') return 'text-(--success)'
-        if (v === 'MANIPULATED') return 'text-(--danger)'
-        if (v === 'SUSPICIOUS' || v === 'INCONCLUSIVE') return 'text-(--warning)'
-        return 'text-(--white)'
-    }, [result])
-
-    // get the display name for a model
-    const modelDisplayName = (rawName = '') => {
-        const n = String(rawName).trim()
-        const k = n.toLowerCase()
-        if (!n) return { title: 'Model', subtitle: 'Detector' }
-
-        if (k.includes('gan')) return { title: 'AI-generation artifacts', subtitle: 'GAN fingerprints • ' + n }
-        if (k.includes('deepfake') || k.includes('swap') || k.includes('face')) return { title: 'Face manipulation', subtitle: 'Swap/reenactment cues • ' + n }
-        if (k.includes('metadata') || k.includes('exif')) return { title: 'Metadata consistency', subtitle: 'EXIF/integrity checks • ' + n }
-        if (k.includes('jpeg') || k.includes('compression')) return { title: 'Compression anomalies', subtitle: 'JPEG block artifacts • ' + n }
-        if (k.includes('noise') || k.includes('sensor')) return { title: 'Camera fingerprint', subtitle: 'Noise/sensor pattern • ' + n }
-        if (k.includes('clip') || k.includes('vision') || k.includes('embedding')) return { title: 'Visual classifier', subtitle: 'Embedding-based detector • ' + n }
-        if (k.includes('nsfw') || k.includes('safety')) return { title: 'Safety classifier', subtitle: 'Content safety • ' + n }
-
-        return { title: n, subtitle: 'Detection model' }
-    }
-
-    // get the model chart data
     const modelChartData = useMemo(() => {
         const models = result?.models
         if (!Array.isArray(models)) return []
-        const rows = models.map((m) => {
-            const meta = modelDisplayName(m?.name ?? '')
-            const score =
-                typeof m?.confidence_percent === 'number'
+
+        const counts = {}
+        return models
+            .map((m) => {
+                const label = m?.display_name || m?.name || 'Model'
+                const score = typeof m?.confidence_percent === 'number'
                     ? Math.max(0, Math.min(100, m.confidence_percent))
                     : 0
-            const fullTitle = meta.title
-            const short =
-                fullTitle.length > 22 ? `${fullTitle.slice(0, 20)}…` : fullTitle
-            return {
-                rawName: m?.name ?? 'Model',
-                ...meta,
-                name: short,
-                fullName: fullTitle,
-                score,
-                confidence: score,
-                status: m?.status ?? '',
-            }
-        })
-        /* Lowest score left → highest right */
-        const sorted = rows.sort((a, b) => a.score - b.score)
-        const counts = {}
-        return sorted.map((row) => {
-            const base = row.name
-            counts[base] = (counts[base] || 0) + 1
-            const n = counts[base]
-            const label = n === 1 ? base : `${base} · ${n}`
-            return { ...row, name: label }
-        })
+                const short = label.length > 22 ? `${label.slice(0, 20)}…` : label
+                return { name: short, fullName: label, score, status: m?.status ?? '' }
+            })
+            .sort((a, b) => a.score - b.score)
+            .map((row) => {
+                counts[row.name] = (counts[row.name] || 0) + 1
+                const n = counts[row.name]
+                return { ...row, name: n === 1 ? row.name : `${row.name} · ${n}` }
+            })
     }, [result])
 
-    // get the bar color for a status
-    const barColorForStatus = (status) => {
-        const s = String(status || '').toUpperCase()
-        if (s.includes('AUTH')) return 'var(--success)'
-        if (s.includes('MANIP')) return 'var(--danger)'
-        if (s.includes('SUSP') || s.includes('INCON')) return 'var(--warning)'
-        return 'var(--primary)'
-    }
-
-    // drag-and-drop events for file upload
-    const onDrag = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-    }
-
-    const onDragIn = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setDragActive(true)
-    }
-
-    const onDragOut = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setDragActive(false)
-    }
-
+    // Consolidated drag handlers — all share the same base behaviour
+    const stopDrag = (e) => { e.preventDefault(); e.stopPropagation() }
+    const onDragIn = (e) => { stopDrag(e); setDragActive(true) }
+    const onDragOut = (e) => { stopDrag(e); setDragActive(false) }
     const onDropFile = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        stopDrag(e)
         setDragActive(false)
         const f = e.dataTransfer?.files?.[0]
         if (f) onPickFile(f)
     }
 
-    // When sidebar is open, main content is 9/12 cols; when closed, it expands to full 12/12
     const mainColSpan = isAuthenticated && sidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'
 
     return (
         <div className="min-h-screen liquid-bg bg-(--black) text-(--white)">
             <Navbar />
 
-            {/* Guest mode strip */}
             <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-24 pb-12">
-                {!isAuthenticated && (
-                    <div className="mb-6 rounded-2xl border border-(--primary)/30 bg-(--primary)/15 px-4 py-3 text-sm text-(--gray) text-center">
+                {/* Guest mode strip */}
+                {ready && !isAuthenticated && (
+                    <div className="mb-6 rounded-2xl border border-(--primary)/50 bg-(--primary)/15 px-4 py-3 text-sm text-(--gray) text-center">
                         <span className="text-(--white) font-semibold">Guest mode:</span> includes one free scan.{' '}
                         <Link to="/signup" className="text-(--primary) underline font-medium">
                             Create an account
@@ -256,10 +176,9 @@ const Scan = () => {
                     </div>
                 )}
 
-                {/* Main content */}
                 <div className="grid gap-6 lg:grid-cols-12">
+                    {/* Sidebar */}
                     {isAuthenticated && sidebarOpen && (
-                        // Sidebar for logged-in users
                         <aside className="lg:col-span-3">
                             <div className="glass rounded-2xl p-4 sm:p-5 lg:sticky lg:top-24">
                                 <div className="flex items-center justify-between gap-3">
@@ -267,17 +186,14 @@ const Scan = () => {
                                         <div className="text-sm font-semibold text-(--white)">Your scans</div>
                                         <div className="text-xs text-(--gray)">Quick access</div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-
-                                        <button
-                                            type="button"
-                                            onClick={toggleSidebar}
-                                            className="text-xs text-(--gray) hover:text-(--white) transition-all cursor-pointer"
-                                            title="Hide History"
-                                        >
-                                            <Minimize2 className='w-5' />
-                                        </button>
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={toggleSidebar}
+                                        className="text-xs text-(--gray) hover:text-(--white) transition-all cursor-pointer"
+                                        title="Hide History"
+                                    >
+                                        <Minimize2 className="w-5" />
+                                    </button>
                                 </div>
 
                                 <div className="history-sidebar mt-4 space-y-2 max-h-140 overflow-auto pr-1">
@@ -291,19 +207,18 @@ const Scan = () => {
                                                 className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-(--white)/5 transition"
                                             >
                                                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-(--white)/15 bg-(--black) ring-1 ring-(--white)/10">
-                                                    {h.thumbnail ? (
-                                                        <>
-                                                            <img
-                                                                alt={h.title || 'Scan thumbnail'}
-                                                                className="h-full w-full object-cover"
-                                                                src={`data:image/jpeg;base64,${h.thumbnail}`}
-                                                            />
-                                                            {/* <div className="pointer-events-none absolute inset-0 rounded-full bg-(--black)/30 backdrop-blur-[2px]" /> */}
-                                                        </>
-                                                    ) : null}
+                                                    {h.thumbnail && (
+                                                        <img
+                                                            alt={h.title || 'Scan thumbnail'}
+                                                            className="h-full w-full object-cover"
+                                                            src={`data:image/jpeg;base64,${h.thumbnail}`}
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-sm font-medium text-(--white)">{h.title || 'Untitled scan'}</div>
+                                                    <div className="truncate text-sm font-medium text-(--white)">
+                                                        {truncateTitle(h.title)}
+                                                    </div>
                                                     <div className="truncate text-xs text-(--white)/75">
                                                         <span className="text-(--gray)">{h.verdict}</span> · {h.confidencePercent ?? '—'}%
                                                     </div>
@@ -318,7 +233,7 @@ const Scan = () => {
                         </aside>
                     )}
 
-                    {/* Main column with upload + preview */}
+                    {/* Main column */}
                     <div className={mainColSpan}>
                         {isAuthenticated && !sidebarOpen && (
                             <div className="mb-4 flex justify-start">
@@ -327,35 +242,35 @@ const Scan = () => {
                                     onClick={toggleSidebar}
                                     className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-(--gray) hover:text-(--white) text-sm font-semibold glass"
                                 >
-                                    <History className='w-5' /> Show history
+                                    <History className="w-5" /> Show history
                                 </button>
                             </div>
                         )}
 
-                        {/* Upload + Preview side-by-side */}
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+                        {/* Upload + Preview */}
+                        <div className="grid gap-6 md:grid-cols-2">
                             <div className="glass rounded-2xl p-5 sm:p-6">
                                 <div className="flex flex-col items-start justify-between">
-                                    {/* <div> */}
-                                    <h1 className="text-2xl sm:text-3xl font-black">Scan with Verifi<span className='logo'>X</span></h1>
+                                    <h1 className="text-2xl sm:text-3xl font-black">
+                                        Scan with Verifi<span className="logo">X</span>
+                                    </h1>
                                     <p className="mt-2 text-(--gray)">
                                         Upload or drag an image to detect deepfakes and verify authenticity. Results and insights appear instantly below.
                                     </p>
-                                    {/* </div> */}
                                 </div>
 
                                 <form onSubmit={onSubmit} className="mt-6 space-y-4">
-                                    {error ? (
+                                    {error && (
                                         <div className="rounded-lg flex gap-2 items-center p-3 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm">
                                             <CloudAlert /> {error}
                                         </div>
-                                    ) : null}
+                                    )}
 
                                     {isAuthenticated && (
                                         <div className="space-y-2">
-                                            <label title='Title Optional' className="text-sm text-(--gray)">Title</label>
+                                            <label title="Title Optional" className="text-sm text-(--gray)">Title</label>
                                             <input
-                                                className="glass w-full p-2 border border-(--gray) rounded-lg "
+                                                className="glass w-full p-2 rounded-lg"
                                                 value={title}
                                                 onChange={(e) => setTitle(e.target.value)}
                                                 placeholder="e.g., Celebrity photo from social media"
@@ -371,17 +286,16 @@ const Scan = () => {
                                             tabIndex={0}
                                             onDragEnter={onDragIn}
                                             onDragLeave={onDragOut}
-                                            onDragOver={onDrag}
+                                            onDragOver={stopDrag}
                                             onDrop={onDropFile}
-                                            className={`glass rounded-lg border-2 border-dashed p-3 transition ${dragActive
-                                                ? 'border-(--primary)/70 bg-(--primary)/10'
-                                                : 'border-(--white)/15'
+                                            className={`glass rounded-lg border-2 border-dashed p-3 transition ${dragActive ? 'border-(--primary)/70 bg-(--primary)/10' : 'border-(--white)/15'
                                                 }`}
                                         >
                                             <div
                                                 onClick={() => inputRef.current?.click()}
-                                                className="relative overflow-auto text-center flex flex-col justify-center items-center w-full h-full border border-dashed rounded-lg p-5 text-sm text-(--gray)">
-                                                <ImageUp className='w-20 h-20 text-(--gray)/90' />
+                                                className="relative overflow-auto text-center flex flex-col justify-center items-center w-full h-full border border-dashed rounded-lg p-5 text-md text-(--gray)"
+                                            >
+                                                <ImageUp className="w-15 h-15 text-(--gray)" />
                                                 <span className="text-(--white) font-semibold">Drag & Drop</span>
                                                 <input
                                                     type="file"
@@ -393,7 +307,6 @@ const Scan = () => {
                                                 an image here, or choose a file
                                                 <p className="text-center text-xs text-(--gray)">JPG, PNG, GIF, WebP. Max 10MB.</p>
                                             </div>
-
                                         </div>
                                     </div>
 
@@ -411,9 +324,9 @@ const Scan = () => {
                             <div className="glass rounded-2xl p-5 sm:p-6">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm font-semibold text-(--white)">Preview</div>
-                                    {file ? (
+                                    {file && (
                                         <div className="text-xs text-(--gray)">{Math.round(file.size / 1024)} KB</div>
-                                    ) : null}
+                                    )}
                                 </div>
                                 <div className="mt-4 rounded-2xl border border-(--white)/10 overflow-hidden bg-(--black)">
                                     {previewUrl ? (
@@ -427,10 +340,11 @@ const Scan = () => {
                             </div>
                         </div>
 
-                        {/* After scan: chart then result — full width, stacked */}
+                        {/* Results */}
                         {result ? (
                             <div className="mt-8 space-y-6">
-                                <div className="glass glass-ring rounded-2xl p-5 sm:p-6">
+                                {/* Chart */}
+                                <div className="glass rounded-2xl p-5 sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-4">
                                         <div>
                                             <div className="text-sm font-semibold text-(--white)">Multi-Model Scores</div>
@@ -446,7 +360,7 @@ const Scan = () => {
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart
                                                     data={modelChartData}
-                                                    margin={{ top: 20, right: 20, left: 0, bottom: 64 }}
+                                                    margin={{ top: 20, right: 20, left: 0, bottom: 70 }}
                                                     barCategoryGap="12%"
                                                 >
                                                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
@@ -485,33 +399,22 @@ const Scan = () => {
                                                             return (
                                                                 <div
                                                                     className="rounded-xl px-3 py-2.5 shadow-2xl backdrop-blur-md max-w-65"
-                                                                    style={{
-                                                                        // borderWidth: 2,
-                                                                        // borderStyle: 'solid',
-                                                                        // borderColor: signal,
-                                                                        background: 'rgba(8, 10, 16, 0.90)',
-                                                                    }}
+                                                                    style={{ background: 'rgba(8, 10, 16, 0.90)' }}
                                                                 >
-                                                                    <div
-                                                                        className="text-[10px] uppercase font-bold tracking-wider mb-1"
-                                                                        style={{ color: signal }}
-                                                                    >
+                                                                    <div className="text-[10px] uppercase font-bold tracking-wider mb-1" style={{ color: signal }}>
                                                                         Signal
                                                                     </div>
                                                                     <div className="text-sm font-semibold text-(--white) leading-snug">
                                                                         {p.fullName || p.name}
                                                                     </div>
-                                                                    <div
-                                                                        className="text-2xl font-black tabular-nums mt-1"
-                                                                        style={{ color: signal }}
-                                                                    >
+                                                                    <div className="text-2xl font-black tabular-nums mt-1" style={{ color: signal }}>
                                                                         {v}%
                                                                     </div>
-                                                                    {p.status ? (
+                                                                    {p.status && (
                                                                         <div className="text-xs text-(--white)/80 mt-1 border-t border-(--white)/10 pt-1">
                                                                             {p.status}
                                                                         </div>
-                                                                    ) : null}
+                                                                    )}
                                                                 </div>
                                                             )
                                                         }}
@@ -521,32 +424,21 @@ const Scan = () => {
                                                         name="Score"
                                                         radius={[8, 8, 0, 0]}
                                                         maxBarSize={56}
-                                                        activeBar={(props) => {
-                                                            const p = props?.payload
-                                                            const stroke = barColorForStatus(p?.status)
-                                                            return (
-                                                                <Rectangle
-                                                                    {...props}
-                                                                    stroke={stroke}
-                                                                    strokeWidth={2}
-                                                                    fillOpacity={0.88}
-                                                                />
-                                                            )
-                                                        }}
-                                                        shape={(props) => {
-                                                            const { x, y, width, height, payload } = props
-                                                            const fill = barColorForStatus(payload?.status)
-                                                            return (
-                                                                <Rectangle
-                                                                    x={x}
-                                                                    y={y}
-                                                                    width={width}
-                                                                    height={height}
-                                                                    fill={fill}
-                                                                    radius={[8, 8, 0, 0]}
-                                                                />
-                                                            )
-                                                        }}
+                                                        activeBar={(props) => (
+                                                            <Rectangle
+                                                                {...props}
+                                                                stroke={barColorForStatus(props?.payload?.status)}
+                                                                strokeWidth={2}
+                                                                fillOpacity={0.88}
+                                                            />
+                                                        )}
+                                                        shape={({ x, y, width, height, payload }) => (
+                                                            <Rectangle
+                                                                x={x} y={y} width={width} height={height}
+                                                                fill={barColorForStatus(payload?.status)}
+                                                                radius={[8, 8, 0, 0]}
+                                                            />
+                                                        )}
                                                     />
                                                 </BarChart>
                                             </ResponsiveContainer>
@@ -556,11 +448,12 @@ const Scan = () => {
                                     )}
                                 </div>
 
-                                <div className="glass glass-ring rounded-2xl p-5 sm:p-6">
+                                {/* Result detail */}
+                                <div className="glass rounded-2xl p-5 sm:p-6">
                                     <div className="text-sm font-semibold text-(--white)">Result</div>
                                     <div className="mt-4 space-y-4">
                                         <div className="flex flex-wrap items-center gap-3">
-                                            <div className={`text-lg font-black tracking-tight ${verdictColorClass}`}>
+                                            <div className={`text-lg font-black tracking-tight ${verdictColorClass(result.verdict)}`}>
                                                 {result.verdict}
                                             </div>
                                             <div className="glass rounded-full px-3 py-1 text-xs text-(--gray)">
@@ -569,41 +462,39 @@ const Scan = () => {
                                             <div className="glass rounded-full px-3 py-1 text-xs text-(--gray)">
                                                 Source: {result.source ?? '—'}
                                             </div>
-                                            {result.guest ? (
+                                            {result.guest && (
                                                 <span className="glass rounded-full px-3 py-1 text-xs text-(--warning) border border-(--warning)/40">
                                                     Guest scan
                                                 </span>
-                                            ) : null}
+                                            )}
                                         </div>
 
-                                        {result.report?.summary ? (
+                                        {result.report?.summary && (
                                             <div className="glass rounded-2xl p-4 border border-(--white)/10">
                                                 <div className="text-xs font-semibold text-(--gray)">Summary</div>
                                                 <div className="mt-1 text-sm text-(--white) leading-relaxed">{result.report.summary}</div>
                                             </div>
-                                        ) : null}
+                                        )}
 
-                                        {Array.isArray(result.report?.what_this_means) && result.report.what_this_means.length ? (
+                                        {Array.isArray(result.report?.what_this_means) && result.report.what_this_means.length > 0 && (
                                             <div className="glass rounded-2xl p-4 border border-(--white)/10">
                                                 <div className="text-xs font-semibold text-(--gray)">What this means</div>
                                                 <ul className="mt-2 space-y-2 text-sm text-(--white)">
                                                     {result.report.what_this_means.map((item, idx) => (
-                                                        <li key={idx} className="text-(--gray) leading-relaxed">
-                                                            {item}
-                                                        </li>
+                                                        <li key={idx} className="text-(--gray) leading-relaxed">{item}</li>
                                                     ))}
                                                 </ul>
                                             </div>
-                                        ) : null}
+                                        )}
 
-                                        {result.report?.recommended_action ? (
+                                        {result.report?.recommended_action && (
                                             <div className="glass rounded-2xl p-4 border border-(--white)/10">
                                                 <div className="text-xs font-semibold text-(--gray)">Recommended action</div>
                                                 <div className="mt-1 text-sm text-(--gray) leading-relaxed">
                                                     {result.report.recommended_action}
                                                 </div>
                                             </div>
-                                        ) : null}
+                                        )}
                                     </div>
                                 </div>
                             </div>

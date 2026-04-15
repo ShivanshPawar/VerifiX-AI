@@ -104,3 +104,14 @@ exports.logout = (req, res) => {
     res.clearCookie("guest_scan_used", getCookieOptions());
     res.status(200).json({ message: "Logged out" });
 };
+
+// AI code: Session validation endpoint used by the frontend during startup.
+exports.getCurrentUser = async (req, res) => {
+    res.status(200).json({
+        user: {
+            userId: req.user.userId,
+            email: req.user.email,
+            fullName: req.user.fullName
+        }
+    });
+};

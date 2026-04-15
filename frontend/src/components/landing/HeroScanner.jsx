@@ -16,6 +16,7 @@ const HeroScanner = () => {
         <img
           className='w-full min-h-70 border border-(--primary)/60 glass rounded-2xl drop-shadow-3xl'
           src={scanImg}
+          loading='lazy'
           alt="Scan"
         />
 

@@ -13,26 +13,26 @@ const Problem = () => {
     ];
 
     return (
-        <section id="problem" className="relative pt-10 lg:pt-20 px-6 flex justify-center items-center">
+        <section id="problem" className="relative py-20 lg:py-20 px-5 flex justify-center items-center">
             {/* Wrapper for the problem content */}
-            <div className='w-full md:w-full lg:w-[80%] max-w-300 p-5 flex flex-col-reverse lg:flex-row justify-between items-center gap-5 rounded-2xl glass'>
+            <div className='p-5 flex flex-col-reverse lg:flex-row justify-between items-center gap-5 rounded-2xl glass'>
 
                 {/* Problem content */}
                 <div className='w-full h-full flex flex-col justify-center items-center gap-5'>
 
                     {/* Problem */}
-                    <h2 className='text-lg px-4 py-1 rounded-lg font-black mt-5 glass'>The Problem</h2>
+                    {/* <h2 className='text-lg px-4 py-1 rounded-lg font-black mt-5 glass'>The Problem</h2> */}
 
                     {/* Problem heading */}
-                    <h2 className="text-3xl font-bold text-center">You Can’t Trust Every Image Online</h2>
+                    <h2 className="text-2xl lg:text-4xl font-bold text-center">You Can’t Trust Every Image Online</h2>
 
                     {/* Problem description */}
-                    <p className='text-center text-(--gray) leading-tight'>Deepfake images are rapidly spreading across the internet, making it harder than ever to distinguish real content from manipulated media and creating serious risks for individuals and organizations.</p>
+                    <p className='max-w-lg text-center text-(--gray) leading-tight'>Deepfake images are rapidly spreading across the internet, making it harder than ever to distinguish real content from manipulated media and creating serious risks for individuals and organizations.</p>
 
                     {/* Problem cards */}
-                    <div className='grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 w-full py-5'>
+                    <div className='grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 max-w-xl py-5'>
                         {problems.map((problem, index) => (
-                            <div key={index} className='w-full rounded-lg glass flex justify-between items-center p-2 gap-5'>
+                            <div key={index} className='w-full rounded-lg flex justify-between items-center p-2 gap-5'>
                                 <img src={problem.icon} alt={problem.alt} />
                                 <div className='w-full'>
                                     <h3 className='text-md font-semibold'>{problem.title}</h3>

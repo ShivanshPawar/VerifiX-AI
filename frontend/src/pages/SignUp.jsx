@@ -51,9 +51,9 @@ const SignUp = () => {
     <div className='w-full min-h-screen flex flex-col justify-center items-center gap-5 p-5 sm:p-20 lg:p-5'>
 
       {/* Image */}
-      <div className='grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-5xl'>
+      <div className='w-full grid lg:grid-cols-2 gap-5 rounded-2xl glass p-5 max-w-5xl'>
         <div className='w-full relative glass overflow-hidden rounded-2xl'>
-          <img className='w-full h-full object-cover' src={halfFaceScan} alt="halfFaceScan" />
+          <img className='w-full h-full object-cover' loading='lazy' src={halfFaceScan} alt="halfFaceScan" />
           <div className="absolute inset-0 
               bg-black/90 
               mask-[radial-gradient(circle,transparent_10%,black_100%)]

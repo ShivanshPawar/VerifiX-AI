@@ -38,6 +38,37 @@
     --gray: #a0a0a0;
   }
 
+  * {
+    font-family: 'outfit', sans-serif;
+    user-select: none;
+  }
+
+  /* KyivTypeTitling-Regular */
+  @font-face {
+    font-family: 'KTT-Regular';
+    src: url('./assets/fonts/KyivTypeTitling-Regular.otf');
+    font-style: normal;
+    font-weight: normal;
+  }
+
+  /* KyivTypeTitling-Medium */
+  @font-face {
+    font-family: 'KTT-Medium';
+    src: url('./assets/fonts/KyivTypeTitling-Medium.otf');
+    font-style: normal;
+    font-weight: normal;
+  }
+
+  /* KyivTypeTitling-Bold */
+  @font-face {
+    font-family: 'KTT-Bold';
+    src: url('./assets/fonts/KyivTypeTitling-Bold.otf');
+    font-style: normal;
+    font-weight: normal;
+  }
+
+
+
   body {
     background-color: var(--black);
     color: var(--white)
@@ -49,97 +80,9 @@
 
 }
 
-
-.outfit {
-  font-family: "Outfit", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-}
-
-* {
-  font-family: 'Outfit';
-  user-select: none;
-}
-
-
-/* KyivTypeTitling-Regular */
-@font-face {
-  font-family: 'KTT-Regular';
-  src: url('./assets/fonts/KyivTypeTitling-Regular.otf');
-  font-style: normal;
-  font-weight: normal;
-}
-
-/* KyivTypeTitling-Medium */
-@font-face {
-  font-family: 'KTT-Medium';
-  src: url('./assets/fonts/KyivTypeTitling-Medium.otf');
-  font-style: normal;
-  font-weight: normal;
-}
-
-/* KyivTypeTitling-Bold */
-@font-face {
-  font-family: 'KTT-Bold';
-  src: url('./assets/fonts/KyivTypeTitling-Bold.otf');
-  font-style: normal;
-  font-weight: normal;
-}
-
-/* Outfit - Thin */
-@font-face {
-  font-family: 'Outfit';
-  src: url('./assets/fonts/Outfit-Thin.woff2') format('woff2'),
-    url('./assets/fonts/Outfit-Thin.woff') format('woff');
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Outfit - Light */
-@font-face {
-  font-family: 'Outfit';
-  src: url('./assets/fonts/Outfit-Light.woff2') format('woff2'),
-    url('./assets/fonts/Outfit-Light.woff') format('woff');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Outfit - Regular */
-@font-face {
-  font-family: 'Outfit';
-  src: url('./assets/fonts/Outfit-Regular.woff2') format('woff2'),
-    url('./assets/fonts/Outfit-Regular.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Outfit - Medium */
-@font-face {
-  font-family: 'Outfit';
-  src: url('./assets/fonts/Outfit-Medium.woff2') format('woff2'),
-    url('./assets/fonts/Outfit-Medium.woff') format('woff');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Outfit - Bold */
-@font-face {
-  font-family: 'Outfit';
-  src: url('./assets/fonts/Outfit-Bold.woff2') format('woff2'),
-    url('./assets/fonts/Outfit-Bold.woff') format('woff');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 .logo {
   font-family: 'KTT-Medium' !important;
-  background: linear-gradient(to bottom, #00DDFF, #00396F);
+  background: linear-gradient(to bottom, var(--primary), var(--secondary));
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }

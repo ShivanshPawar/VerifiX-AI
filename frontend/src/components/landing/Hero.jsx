@@ -9,7 +9,7 @@ const Hero = () => {
         {/* Tagline */}
         <div className='w-60 py-2 flex justify-center items-center backdrop-blur-2xl bg-linear-to-r from-(--primary)/60 to-(--secondary)/60 rounded-full border border-(--primary/80 gap-2 text-sm'>
           <Sparkles className='w-4 h-4 shrink-0' />
-          <h1>Deepfake Image Detection</h1>
+          <h1>AI-Powered Verification</h1>
         </div>
 
         {/* Main Heading */}
