@@ -24,10 +24,10 @@ const Problem = () => {
                     {/* <h2 className='text-lg px-4 py-1 rounded-lg font-black mt-5 glass'>The Problem</h2> */}
 
                     {/* Problem heading */}
-                    <h2 className="text-2xl lg:text-4xl font-bold text-center">You Can’t Trust Every Image Online</h2>
+                    <h2 className="text-3xl lg:text-4xl font-bold text-center">Problems Around Us</h2>
 
                     {/* Problem description */}
-                    <p className='max-w-lg text-center text-(--gray) leading-tight'>Deepfake images are rapidly spreading across the internet, making it harder than ever to distinguish real content from manipulated media and creating serious risks for individuals and organizations.</p>
+                    <p className='max-w-lg text-center text-(--gray) leading-tight'>Deepfake images are rapidly spreading across the internet, making it harder than ever to verify authenticity and exposing individuals and organizations to serious security risks.</p>
 
                     {/* Problem cards */}
                     <div className='grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-5 max-w-xl py-5'>

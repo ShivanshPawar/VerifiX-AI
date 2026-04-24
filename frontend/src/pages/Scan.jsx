@@ -360,7 +360,7 @@ const Scan = () => {
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart
                                                     data={modelChartData}
-                                                    margin={{ top: 20, right: 20, left: 0, bottom: 70 }}
+                                                    margin={{ top: 20, right: 0, left: -30, bottom: 70 }}
                                                     barCategoryGap="12%"
                                                 >
                                                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
@@ -399,7 +399,7 @@ const Scan = () => {
                                                             return (
                                                                 <div
                                                                     className="rounded-xl px-3 py-2.5 shadow-2xl backdrop-blur-md max-w-65"
-                                                                    style={{ background: 'rgba(8, 10, 16, 0.90)' }}
+                                                                    style={{ background: 'rgba(8, 10, 16, 0.90)', border: '1px solid rgba(255,255,255,0.2)',}}
                                                                 >
                                                                     <div className="text-[10px] uppercase font-bold tracking-wider mb-1" style={{ color: signal }}>
                                                                         Signal
@@ -424,14 +424,6 @@ const Scan = () => {
                                                         name="Score"
                                                         radius={[8, 8, 0, 0]}
                                                         maxBarSize={56}
-                                                        activeBar={(props) => (
-                                                            <Rectangle
-                                                                {...props}
-                                                                stroke={barColorForStatus(props?.payload?.status)}
-                                                                strokeWidth={2}
-                                                                fillOpacity={0.88}
-                                                            />
-                                                        )}
                                                         shape={({ x, y, width, height, payload }) => (
                                                             <Rectangle
                                                                 x={x} y={y} width={width} height={height}

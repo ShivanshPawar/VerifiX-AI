@@ -46,7 +46,7 @@ const Navbar = () => {
     return (
         <nav
             role="navigation"
-            className="fixed top-4 left-1/2 z-50 w-full max-w-[90%] -translate-x-1/2 rounded-xl glass"
+            className="fixed top-4 left-1/2 z-50 w-[90%] sm:w-[95%] lg:max-w-[90%] -translate-x-1/2 rounded-xl glass"
         >
             <div className="flex items-center justify-between px-4 py-2 sm:px-6 lg:px-4">
                 {/* Logo */}

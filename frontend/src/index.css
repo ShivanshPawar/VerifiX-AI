@@ -1,6 +1,17 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    overflow-x: hidden;
+    background-color: var(--black);
+    color: var(--white)
+  }
+
   :root {
     /* Shades of primary color */
     --primary-50: #E6FCFF;
@@ -10,10 +21,9 @@
     --primary-400: #1AE0FF;
     --primary: #00DDFF;
     /* base */
-    --primary-600: #00B8D4;
-    --primary-700: #0093AA;
-    --primary-800: #006E80;
-    --primary-900: #004A55;
+    --primary-soft: rgba(0, 221, 255, 0.2);
+    --primary-glow: rgba(0, 221, 255, 0.5);
+    --primary-dim: rgba(0, 221, 255, 0.08);
 
     /* Shades of secondary color */
     --secondary-50: #E6ECF3;
@@ -28,8 +38,8 @@
     --secondary-800: #001C37;
     --secondary-900: #001225;
 
-    /* --primary: #00DDFF; */
-    /* --secondary: #00396F; */
+    --primary: #00DDFF;
+    --secondary: #00396F;
     --success: #22c55e;
     --danger: #ff0000;
     --warning: #f5e50b;
@@ -67,19 +77,13 @@
     font-weight: normal;
   }
 
-
-
-  body {
-    background-color: var(--black);
-    color: var(--white)
-  }
-
   section {
     scroll-margin-top: 96px
   }
 
 }
 
+/* Logo styles */
 .logo {
   font-family: 'KTT-Medium' !important;
   background: linear-gradient(to bottom, var(--primary), var(--secondary));
@@ -87,6 +91,7 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* Glass background */
 .glass {
   background: linear-gradient(135deg,
       color-mix(in srgb, var(--white) 8%, transparent),
@@ -99,29 +104,7 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-.glass-scan {
-  background: linear-gradient(135deg,
-      color-mix(in srgb, var(--primary) 4%, transparent),
-      color-mix(in srgb, var(--primary) 4%, transparent));
-  border: 1px solid color-mix(in srgb, var(--primary) 10%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--white) 12%, transparent) inset,
-    0 20px 60px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
 @layer scan {
-
-  :root {
-    --bg: #05050a;
-
-    /* PRIMARY COLOR SYSTEM */
-    --primary: #00DDFF;
-    --primary-soft: rgba(0, 221, 255, 0.2);
-    --primary-glow: rgba(0, 221, 255, 0.5);
-    --primary-dim: rgba(0, 221, 255, 0.08);
-  }
 
   /* GRID */
   .grid-overlay {
@@ -237,11 +220,15 @@
     }
   }
 
-}
-
-/* Scan-page styles */
-@layer scan {
+  /* Scan-page styles */
   .history-sidebar::-webkit-scrollbar {
     display: none;
   }
+
+}
+
+/* Removes the focus outline specifically for chart elements */
+.recharts-wrapper *:focus,
+.recharts-surface:focus {
+  outline: none !important;
 }

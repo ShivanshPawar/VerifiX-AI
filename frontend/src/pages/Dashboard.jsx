@@ -89,6 +89,8 @@ const Dashboard = () => {
         return <Sector {...props} fill={fill} />
     }
 
+    const isMobile = window.innerWidth < 768;
+
     return (
         <div className="min-h-screen bg-(--black) text-(--white)">
             <Navbar />
@@ -119,10 +121,10 @@ const Dashboard = () => {
                     <div className="mt-8 rounded-2xl flex items-center gap-2 p-4 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm"><CloudAlert /> {error}</div>
                 ) : data ? (
                     <>
-                        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                        <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-5">
                             {[
                                 { label: 'Total scans', value: data.stats?.total_scans ?? 0 },
-                                { label: 'Unique images', value: data.stats?.unique_image ?? 0, },
+                                { label: 'Unique images', value: data.stats?.unique_image ?? 0, accent: 'text-(--primary)' },
                                 { label: 'Authentic', value: data.stats?.authentic ?? 0, accent: 'text-(--success)' },
                                 { label: 'Manipulated', value: data.stats?.manipulated ?? 0, accent: 'text-(--danger)' },
                                 { label: 'Inconclusive', value: data.stats?.inconclusive ?? 0, accent: 'text-(--warning)' },
@@ -140,7 +142,7 @@ const Dashboard = () => {
                                 <p className="mt-1 text-xs text-(--gray)">Bars left → right: lowest to highest count</p>
                                 <div className="mt-4 h-70">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={verdictBarData} margin={{ top: 16, right: 12, left: 12, bottom: 8 }}>
+                                        <BarChart data={verdictBarData} margin={{ top: 16, right: 12, left: -30, bottom: 8 }}>
                                             <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
                                             <XAxis
                                                 dataKey="name"
@@ -162,10 +164,9 @@ const Dashboard = () => {
                                                         <div
                                                             className="rounded-xl px-3 py-2 shadow-xl backdrop-blur-md"
                                                             style={{
-                                                                borderWidth: 1,
-                                                                borderStyle: 'solid',
-                                                                borderColor: 'var(--gray)',
-                                                                background: 'rgba(8, 10, 16, 0.96)',
+                                                                background: 'rgba(8,10,16,0.96)',
+                                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                                borderRadius: 12,
                                                                 color: '#fff',
                                                             }}
                                                         >
@@ -210,7 +211,7 @@ const Dashboard = () => {
                                                     cy="50%"
                                                     outerRadius={90}
                                                     shape={renderPieShape}
-                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                    label={!isMobile ? ({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%` : null}
                                                 />
                                                 <Tooltip
                                                     contentStyle={{

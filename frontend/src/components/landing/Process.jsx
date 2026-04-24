@@ -1,54 +1,64 @@
 import React from 'react'
+import { BookCheck, BrainCircuit, ImagePlay, ImageUp, Microscope, ScanFace, } from 'lucide-react'
 
-const Process = () => {
+const Features = () => {
 
-  // Steps data for cards
-
-  const steps = [
+  const featuresData = [
     {
-      title: "Upload & Secure",
-      desc: "Drop in any image you want to check. We instantly protect your data with secure encryption before the analysis begins.",
+      icon: <ImageUp />,
+      title: "Upload & Protect",
+      description:
+        "Upload any image you want to verify. Your data is instantly secured with end-to-end encryption before analysis begins.",
     },
     {
-      title: "Deep Scan",
-      desc: "Our multi-layered AI hunts for hidden traces of AI generation, face swaps, and digital editing that the human eye misses.",
+      icon: <BrainCircuit />,
+      title: "AI Deep Analysis",
+      description:
+        "Our multi-layered AI scans for deepfake signals—detecting AI generation, face swaps, and hidden manipulations by analyzing textures, lighting, and digital patterns.",
     },
     {
-      title: "Detail Analysis",
-      desc: "We examine the DNA of the image—checking lighting, textures, and shadows for inconsistencies that signal a fake.",
+      icon: <BookCheck />,
+      title: "Get Verified Results",
+      description:
+        "Receive a clear Truth Score with a detailed report. Instantly understand whether the image is real, manipulated, or AI-generated—so you can act with confidence.",
     },
-    {
-      title: "Get the Truth",
-      desc: "Receive a simple Truth Score and a clear report. Now you can share, post, or use the image knowing exactly what’s real.",
-    },
-  ];
+  ]
 
   return (
-    <section id="how-it-works" className='w-full flex flex-col justify-center items-center py-20 gap-10'>
+    <section
+      id="how-it-works"
+      className="flex flex-col justify-center items-center py-20"
+    >
+      <div className="max-w-300 w-full lg:w-[80%] px-5 sm:px-10 lg:px-0">
 
-      {/* <h2 className='text-lg px-4 py-1 rounded-lg glass font-black'>Process</h2> */}
+        {/* Heading */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl lg:text-4xl font-bold">
+            How VerifiX Works
+          </h2>
 
-      <div className='w-full lg:w-[80%] max-w-300 rounded-2xl grid gap-10 px-5 sm:px-10 lg:px-0'>
-        <div className='flex flex-col gap-5 items-center'>
-          {/* Process heading */}
-          <h2 className='text-2xl lg:text-4xl font-bold'>How VerifiX Works</h2>
-          {/* Process description */}
-          <p className='text-(--gray) text-center max-w-200'>Verify any image in four simple steps. Our AI does the heavy lifting so you can browse with confidence.</p>
+          <p className="mt-4 text-(--gray) max-w-2xl mx-auto">
+            Verify any image in three seamless steps. Our AI handles the complexity—so you get clarity in seconds.
+          </p>
         </div>
 
-        {/* Process cards */}
-        <div className="w-full grid md:grid-cols-2 lg:grid-cols-2 gap-10">
-          {steps.map((step, index) => (
-            <div key={index} className="flex flex-col p-5 gap-3 rounded-2xl duration-300 glass">
-              {/* Process card title */}
-              <div className="flex justify-between items-center text-2xl font-semibold">
-                <h4>{step.title}</h4>
-                <h4>0{index + 1}</h4>
-              </div>
-              <hr className="border-(--gray)/50" />
-              {/* Process card description */}
-              <p className="text-sm opacity-80">{step.desc}</p>
-              <hr className="border-(--gray)/50" />
+        {/* Cards */}
+        <div className="grid md:grid-cols-3 gap-5 lg:gap-10">
+          {featuresData.map((feature, index) => (
+            <div
+              key={index}
+              className="glass p-6 rounded-2xl mb-3 hover:scale-102 transition-all"
+            >
+              <button className='p-3 mb-3 text-(--primary) bg-(--primary)/10 border border-(--primary) rounded-xl'>
+                {feature.icon}
+              </button>
+              <h3 className="text-xl font-semibold mb-3">
+                {feature.title}
+              </h3>
+
+              <p className="text-(--gray) text-sm leading-relaxed">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
@@ -58,4 +68,4 @@ const Process = () => {
   )
 }
 
-export default Process
+export default Features

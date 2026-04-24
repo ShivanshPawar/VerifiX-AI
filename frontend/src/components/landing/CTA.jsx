@@ -11,7 +11,7 @@ const CTA = () => {
         </h2>
 
         <p className="text-(--gray) max-w-2xl mx-auto">
-          Join thousands of users who rely on VerifiX to expose AI fakes and digital manipulation. Fast, private, and built with industry-leading precision.
+          Make confident decisions with AI-powered deepfake detection. VerifiX helps you uncover manipulated images instantly—securely, privately, and with precision you can trust.
         </p>
 
         <div className='mt-10 p-2 rounded-xl glass flex items-center'>

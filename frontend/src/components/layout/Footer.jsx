@@ -12,7 +12,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="flex justify-center items-center border-t border-(--white)/10 mt-20 py-20 px-5">
+    <footer className="flex justify-center items-center border-t border-(--white)/10 mt-20 py-20 px-5 sm:px-10 lg:px-0">
       <div className="w-full lg:max-w-[90%] px-4 py-2 sm:px-6 lg:px-4">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">

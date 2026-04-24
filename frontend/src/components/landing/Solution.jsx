@@ -4,10 +4,8 @@ import ModelBars from '../../assets/images/DashMockup.png'
 const Solution = () => {
   return (
     <section id="solution" className="flex flex-col items-center py-20 bg-linear-to-b from-(--black) via-(--white)/20 to-(--black)">
-      {/* Solution heading */}
-      {/* <h2 className='text-2xl lg:text-4xl font-bold'>Trust what you see again</h2> */}
 
-      {/* Solution description */}
+      {/* Solution content */}
       <div className='w-full flex flex-col gap-5 lg:gap-20 items-center lg:w-[80%] px-5 sm:px-10 lg:px-0 max-w-300'>
         <h2 className='text-center text-lg md:text-2xl lg:text-4xl text-(--gray) font-bold'><span className='text-(--white)'>When digital images can no longer be trusted,</span> verification becomes essential. VerifiX detects deepfake images, uncovers hidden manipulation, and helps users verify digital content before believing what they see.</h2>
         <div className='w-full'>
