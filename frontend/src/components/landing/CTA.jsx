@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const CTA = () => {
   return (
-    <section id="cta" className="flex justify-center items-center py-20 px-5 sm:px-10 lg:px-0">
+    <section id="cta" className="flex justify-center items-center py-10 sm:py-30 px-5 sm:px-10 lg:px-0">
 
       <div className=" flex flex-col justify-center items-center text-center rounded-2xl py-10 px-5 sm:p-12 glass">
 

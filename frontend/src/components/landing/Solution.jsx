@@ -3,7 +3,7 @@ import ModelBars from '../../assets/images/DashMockup.png'
 
 const Solution = () => {
   return (
-    <section id="solution" className="flex flex-col items-center py-20 bg-linear-to-b from-(--black) via-(--white)/20 to-(--black)">
+    <section id="solution" className="flex flex-col items-center py-10 sm:py-20 bg-linear-to-b from-(--black) via-(--white)/20 to-(--black)">
 
       {/* Solution content */}
       <div className='w-full flex flex-col gap-5 lg:gap-20 items-center lg:w-[80%] px-5 sm:px-10 lg:px-0 max-w-300'>

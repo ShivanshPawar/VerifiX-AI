@@ -27,7 +27,7 @@ const Features = () => {
   return (
     <section
       id="features"
-      className="flex flex-col justify-center items-center py-20"
+      className="flex flex-col justify-center items-center py-10 sm:py-20"
     >
       <div className="max-w-300 w-full lg:w-[80%] px-5 sm:px-10 lg:px-0">
 

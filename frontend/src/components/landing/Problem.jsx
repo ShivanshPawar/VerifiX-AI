@@ -13,7 +13,7 @@ const Problem = () => {
     ];
 
     return (
-        <section id="problem" className="relative py-20 lg:py-20 px-5 flex justify-center items-center">
+        <section id="problem" className="relative py-10 sm:py-20 px-5 flex justify-center items-center">
             {/* Wrapper for the problem content */}
             <div className='p-5 flex flex-col-reverse lg:flex-row justify-between items-center gap-5 rounded-2xl glass'>
 

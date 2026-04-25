@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 const Hero = () => {
   return (
     <section id='hero' className='relative  w-full pt-25'>
-      <div className='w-full flex flex-col items-center pt-10 px-4 md:px-10 lg:px-40'>
+      <div className='w-full flex flex-col items-center pt-5 sm:pt-10 px-4 md:px-10 lg:px-40'>
 
         {/* Tagline */}
         <div className='w-60 py-2 flex justify-center items-center backdrop-blur-2xl bg-linear-to-r from-(--primary)/60 to-(--secondary)/60 rounded-full border border-(--primary/80 gap-2 text-sm'>
-          <Sparkles className='w-4 h-4 shrink-0' />
+          <Sparkles className='w-5 h-5 shrink-0' />
           <h1>AI-Powered Verification</h1>
         </div>
 

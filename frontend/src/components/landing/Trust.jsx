@@ -31,7 +31,7 @@ const Trust = () => {
   return (
     <section
       id="trust"
-      className="flex justify-center px-5 py-20 sm:px-10 lg:px-0"
+      className="flex justify-center px-5 py-10 sm:py-20 sm:px-10 lg:px-0"
     >
       <div className="w-full max-w-300 lg:w-[80%]">
         <div>
