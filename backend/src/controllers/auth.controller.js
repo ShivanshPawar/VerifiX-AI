@@ -4,11 +4,19 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/user.model');
 
 function getCookieOptions() {
+    const isProduction = env.node_env === "production";
     return {
         httpOnly: true,
-        sameSite: "lax",
-        secure: env.cookie_secure
+        secure: isProduction || env.cookie_secure,
+        sameSite: isProduction ? "strict" : "lax",
+        maxAge: env.auth_cookie_max_age_ms,
+        path: "/"
     };
+}
+
+function getClearCookieOptions() {
+    const { maxAge, ...cookieOptions } = getCookieOptions();
+    return cookieOptions;
 }
 
 // Register User Controller
@@ -45,7 +53,7 @@ exports.register = async (req, res) => {
     });
 
     // Generate JWT token with userId payload and secret key
-    const token = jwt.sign({ userId: user._id }, env.jwt_secret);
+    const token = jwt.sign({ userId: user._id }, env.jwt_secret, { expiresIn: "24h" });
 
     // Set token in HTTP-only cookie for client
     res.cookie("token", token, getCookieOptions())
@@ -100,8 +108,8 @@ exports.login = async (req, res) => {
 }
 
 exports.logout = (req, res) => {
-    res.clearCookie("token", getCookieOptions());
-    res.clearCookie("guest_scan_used", getCookieOptions());
+    res.clearCookie("token", getClearCookieOptions());
+    res.clearCookie("guest_scan_used", getClearCookieOptions());
     res.status(200).json({ message: "Logged out" });
 };
 

@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { api, registerUnauthorizedHandler } from '../lib/api'
 
 const AuthContext = createContext(null)
-const USER_STORAGE_KEY = 'verifix_user'
 const AUTH_PAGES = new Set(['/signin', '/signup'])
 
 export function AuthProvider({ children }) {
@@ -10,8 +9,7 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false)
   const isHandlingUnauthorizedRef = useRef(false)
 
-  const clearStoredUser = useCallback(() => {
-    localStorage.removeItem(USER_STORAGE_KEY)
+  const clearUser = useCallback(() => {
     setUserState(null)
   }, [])
 
@@ -19,32 +17,17 @@ export function AuthProvider({ children }) {
     let active = true
 
     const validateSession = async () => {
-      let storedUser = null
-
-      try {
-        const raw = localStorage.getItem(USER_STORAGE_KEY)
-        storedUser = raw ? JSON.parse(raw) : null
-      } catch {
-        clearStoredUser()
-      }
-
-      if (!storedUser) {
-        if (active) setReady(true)
-        return
-      }
-
       try {
         // AI code: Re-check the server session before showing authenticated navigation on refresh.
         const res = await api.get('/auth/me', { skipAuthRedirect: true })
-        const nextUser = res.data?.user ?? storedUser
+        const nextUser = res.data?.user ?? null
 
         if (!active) return
 
         setUserState(nextUser)
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser))
       } catch {
         if (!active) return
-        clearStoredUser()
+        clearUser()
       } finally {
         if (active) setReady(true)
       }
@@ -55,12 +38,10 @@ export function AuthProvider({ children }) {
     return () => {
       active = false
     }
-  }, [clearStoredUser])
+  }, [clearUser])
 
   const setUser = useCallback((u) => {
     setUserState(u)
-    if (u) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u))
-    else localStorage.removeItem(USER_STORAGE_KEY)
   }, [])
 
   const redirectToSignIn = useCallback(() => {
@@ -80,13 +61,13 @@ export function AuthProvider({ children }) {
         }
       }
 
-      clearStoredUser()
+      clearUser()
 
       if (redirectToLogin) {
         redirectToSignIn()
       }
     },
-    [clearStoredUser, redirectToSignIn]
+    [clearUser, redirectToSignIn]
   )
 
   const logout = useCallback(async () => {

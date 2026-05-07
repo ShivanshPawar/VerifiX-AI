@@ -6,11 +6,8 @@ const User = require("../models/user.model");
 module.exports = async function authMiddleware(req, res, next) {
 
     try {
-         // Prefer Authorization header, fallback to httpOnly cookie
-        const authHeader = req.headers.authorization;
-        const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-        const cookieToken = req.cookies?.token || null;
-        const token = bearerToken || cookieToken;
+        // Auth now uses only the httpOnly token cookie.
+        const token = req.cookies?.token || null;
 
         if (!token) {
             return res.status(401).json({ message: "Authentication required" });

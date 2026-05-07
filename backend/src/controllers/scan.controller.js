@@ -24,7 +24,14 @@ const MODEL_DISPLAY_NAMES = {
 // ─── Private helpers ──────────────────────────────────────────────────────────
 
 function guestCookieOptions() {
-  return { httpOnly: true, sameSite: "lax", secure: env.cookie_secure };
+  const isProduction = env.node_env === "production";
+  return {
+    httpOnly: true,
+    secure: isProduction || env.cookie_secure,
+    sameSite: isProduction ? "strict" : "lax",
+    maxAge: env.auth_cookie_max_age_ms,
+    path: "/",
+  };
 }
 
 /** Normalize raw RD model list into a clean, client-safe shape with display names. */
