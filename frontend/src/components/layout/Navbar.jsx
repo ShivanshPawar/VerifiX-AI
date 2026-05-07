@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -7,6 +7,7 @@ const Navbar = () => {
     const { isAuthenticated, logout, ready } = useAuth();
     const navigate = useNavigate();
     const { pathname } = useLocation();
+    const mobileMenuRef = useRef(null);
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -16,6 +17,22 @@ const Navbar = () => {
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [pathname]);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        if (mobileMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            return () => {
+                document.removeEventListener("mousedown", handleClickOutside);
+            };
+        }
+    }, [mobileMenuOpen]);
 
     const handleLogout = async () => {
         setMobileMenuOpen(false);
@@ -45,6 +62,7 @@ const Navbar = () => {
 
     return (
         <nav
+            ref={mobileMenuRef}
             role="navigation"
             className="fixed top-4 left-1/2 z-50 w-[90%] sm:w-[95%] lg:max-w-[90%] -translate-x-1/2 rounded-xl glass"
         >
@@ -76,7 +94,7 @@ const Navbar = () => {
                 {/* Desktop Auth */}
                 <div className="hidden lg:flex items-center gap-2">
                     {isLoggedIn ? (
-                        <button className="text-sm glass px-2 py-1 rounded-lg hover:scale-105 transition-all cursor-pointer font-semibold" onClick={handleLogout}>Log out</button>
+                        <button className="text-sm glass px-2 py-1 rounded-lg hover:scale-105 transition-all cursor-pointer font-semibold hover:text-(--danger)" onClick={handleLogout}>Log out</button>
                     ) : (
                         <>
                             <Link className="text-sm font-semibold px-2 py-1 hover:scale-105 transition-all" to="/signin">Sign in</Link>
@@ -88,9 +106,10 @@ const Navbar = () => {
                 {/* Mobile Toggle */}
                 <button
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="lg:hidden"
+                    className="lg:hidden text-(--white) p-2 rounded-lg hover:bg-(--white)/10 transition-all"
+                    aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 >
-                    {mobileMenuOpen ? <X /> : <Menu />}
+                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 

@@ -9,25 +9,20 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false)
   const isHandlingUnauthorizedRef = useRef(false)
 
-  const clearUser = useCallback(() => {
-    setUserState(null)
-  }, [])
-
+  // Session validation via server-side cookie and /auth/me endpoint
   useEffect(() => {
     let active = true
 
     const validateSession = async () => {
       try {
-        // AI code: Re-check the server session before showing authenticated navigation on refresh.
+        // Validate session using httpOnly cookie (browser sends it automatically with withCredentials: true)
         const res = await api.get('/auth/me', { skipAuthRedirect: true })
-        const nextUser = res.data?.user ?? null
-
         if (!active) return
-
-        setUserState(nextUser)
+        setUserState(res.data?.user ?? null)
       } catch {
+        // No valid session or token expired
         if (!active) return
-        clearUser()
+        setUserState(null)
       } finally {
         if (active) setReady(true)
       }
@@ -38,10 +33,6 @@ export function AuthProvider({ children }) {
     return () => {
       active = false
     }
-  }, [clearUser])
-
-  const setUser = useCallback((u) => {
-    setUserState(u)
   }, [])
 
   const redirectToSignIn = useCallback(() => {
@@ -54,26 +45,27 @@ export function AuthProvider({ children }) {
     async ({ redirectToLogin = false, notifyServer = false } = {}) => {
       if (notifyServer) {
         try {
-          // AI code: Send an empty JSON object because Express strict JSON parsing rejects a raw `null` body.
+          // Clear httpOnly cookie on server
           await api.post('/auth/logout', {}, { skipAuthRedirect: true })
         } catch {
           /* still clear client */
         }
       }
 
-      clearUser()
+      setUserState(null)
 
       if (redirectToLogin) {
         redirectToSignIn()
       }
     },
-    [clearUser, redirectToSignIn]
+    [redirectToSignIn]
   )
 
   const logout = useCallback(async () => {
     await clearAuth({ notifyServer: true })
   }, [clearAuth])
 
+  // Handle 401 responses by clearing auth and redirecting
   useEffect(() => {
     const unregister = registerUnauthorizedHandler(async () => {
       if (isHandlingUnauthorizedRef.current) return
@@ -81,7 +73,6 @@ export function AuthProvider({ children }) {
       isHandlingUnauthorizedRef.current = true
 
       try {
-        // AI code: Any protected request that comes back 401 immediately resets the stale client session.
         await clearAuth({ notifyServer: true, redirectToLogin: true })
       } finally {
         isHandlingUnauthorizedRef.current = false
@@ -91,16 +82,28 @@ export function AuthProvider({ children }) {
     return unregister
   }, [clearAuth])
 
+  // Helper function to refresh user from server
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await api.get('/auth/me', { skipAuthRedirect: true })
+      setUserState(res.data?.user ?? null)
+      return res.data?.user ?? null
+    } catch {
+      setUserState(null)
+      return null
+    }
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
-      setUser,
       logout,
       ready,
       clearAuth,
+      refreshUser,
       isAuthenticated: ready && !!user,
     }),
-    [user, setUser, logout, ready, clearAuth]
+    [user, logout, ready, clearAuth, refreshUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

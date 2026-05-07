@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useMemo, useState } from 'react';
 
 const SignIn = () => {
-  const { setUser } = useAuth()
+  const { refreshUser } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -25,8 +25,9 @@ const SignIn = () => {
     setError('')
     setIsSubmitting(true)
     try {
-      const res = await api.post('/auth/login', { email, password }, { skipAuthRedirect: true })
-      setUser(res.data?.user ?? null)
+      await api.post('/auth/login', { email, password }, { skipAuthRedirect: true })
+      // Refresh user from server session (authenticated via httpOnly cookie)
+      await refreshUser()
       navigate('/scan', { replace: true })
     } catch (err) {
       const message = err?.response?.data?.message ?? 'Sign in failed. Please try again.'

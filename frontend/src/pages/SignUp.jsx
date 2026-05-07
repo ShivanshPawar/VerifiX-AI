@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'
 
 const SignUp = () => {
 
-  const { setUser } = useAuth()
+  const { refreshUser } = useAuth()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -31,12 +31,13 @@ const SignUp = () => {
     setError('')
     setIsSubmitting(true)
     try {
-      const res = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         email,
         fullName: { firstName: firstName.trim(), lastName: lastName.trim() },
         password,
       })
-      setUser(res.data?.user ?? null)
+      // Refresh user from server session (authenticated via httpOnly cookie)
+      await refreshUser()
       navigate('/scan', { replace: true })
     } catch (err) {
       const message = err?.response?.data?.message ?? 'Sign up failed. Please try again.'
