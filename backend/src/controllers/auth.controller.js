@@ -113,7 +113,7 @@ exports.logout = (req, res) => {
     res.status(200).json({ message: "Logged out" });
 };
 
-// AI code: Session validation endpoint used by the frontend during startup.
+// Session validation endpoint used by the frontend during startup.
 exports.getCurrentUser = async (req, res) => {
     res.status(200).json({
         user: {

@@ -87,7 +87,7 @@ const History = () => {
 
                 <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((it) => (
-                        <div key={it.scanId} className="glass hover:scale-102 transition-all rounded-2xl overflow-hidden">
+                        <div key={it.scanId} className="glass-container hover:scale-102 transition-all rounded-2xl overflow-hidden">
                             <div className="relative h-40 overflow-hidden border-b border-(--white)/10 bg-(--black)">
                                 {it.thumbnail ? (
                                     <>
@@ -124,7 +124,7 @@ const History = () => {
                                     <div className="flex gap-2">
                                         <Link
                                             to={`/history/${it.scanId}`}
-                                            className="rounded-full px-3 py-1.5 text-xs font-semibold glass hover:scale-105 cursor-pointer transition-all"
+                                            className="rounded-full px-3 py-1.5 text-xs font-semibold glass-container hover:scale-105 cursor-pointer transition-all"
                                         >
                                             Details
                                         </Link>
@@ -151,7 +151,7 @@ const History = () => {
                             type="button"
                             disabled={page <= 1 || loading}
                             onClick={() => load(page - 1)}
-                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
+                            className="rounded-full px-4 py-2 text-sm font-semibold glass-container disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
                         >
                             Prev
                         </button>
@@ -159,7 +159,7 @@ const History = () => {
                             type="button"
                             disabled={page >= totalPages || loading}
                             onClick={() => load(page + 1)}
-                            className="rounded-full px-4 py-2 text-sm font-semibold glass disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
+                            className="rounded-full px-4 py-2 text-sm font-semibold glass-container disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-105 transition-all"
                         >
                             Next
                         </button>

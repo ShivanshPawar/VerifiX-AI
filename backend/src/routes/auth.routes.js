@@ -14,7 +14,7 @@ router.post("/login", authController.login);
 // Logout — clears auth + guest trial cookies
 router.post("/logout", authController.logout);
 
-// AI code: Lightweight session check for restoring auth state after refresh.
+// Lightweight session check for restoring auth state after refresh.
 router.get("/me", authMiddleware, authController.getCurrentUser);
 
 module.exports = router;

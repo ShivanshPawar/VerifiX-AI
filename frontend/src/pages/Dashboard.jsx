@@ -102,7 +102,7 @@ const Dashboard = () => {
                         <p className="mt-2 text-(--gray)">Overview of your scans and verdicts.</p>
                     </div>
                     <div className="flex gap-2">
-                        <Link to="/history" title='history' className="inline-flex items-center justify-center rounded-full px-2.5 text-sm font-semibold text-(--white)/80 hover:text-(--white) glass">
+                        <Link to="/history" title='history' className="inline-flex items-center justify-center rounded-full px-2.5 text-sm font-semibold text-(--white)/80 hover:text-(--white) glass-container">
                             <History className='w-5' />
                         </Link>
                         <Link
@@ -116,7 +116,7 @@ const Dashboard = () => {
                 </div>
 
                 {loading ? (
-                    <div className="mt-8 glass rounded-2xl p-8 text-(--gray)">Loading…</div>
+                    <div className="mt-8 glass-container rounded-2xl p-8 text-(--gray)">Loading…</div>
                 ) : error ? (
                     <div className="mt-8 rounded-2xl flex items-center gap-2 p-4 border border-(--danger)/35 bg-(--danger)/10 text-(--danger) text-sm"><CloudAlert /> {error}</div>
                 ) : data ? (
@@ -129,7 +129,7 @@ const Dashboard = () => {
                                 { label: 'Manipulated', value: data.stats?.manipulated ?? 0, accent: 'text-(--danger)' },
                                 { label: 'Inconclusive', value: data.stats?.inconclusive ?? 0, accent: 'text-(--warning)' },
                             ].map((c) => (
-                                <div key={c.label} className="glass rounded-2xl p-5">
+                                <div key={c.label} className="glass-container rounded-2xl p-5">
                                     <div className="text-xs text-(--gray)">{c.label}</div>
                                     <div className={`mt-1 text-2xl font-black ${c.accent ?? 'text-(--white)'}`}>{c.value}</div>
                                 </div>
@@ -137,7 +137,7 @@ const Dashboard = () => {
                         </div>
 
                         <div className="mt-8 grid gap-6 lg:grid-cols-2">
-                            <div className="glass rounded-2xl p-5 sm:p-6">
+                            <div className="glass-container rounded-2xl p-5 sm:p-6">
                                 <div className="text-sm font-semibold text-(--white)">Verdict distribution</div>
                                 <p className="mt-1 text-xs text-(--gray)">Bars left → right: lowest to highest count</p>
                                 <div className="mt-4 h-70">
@@ -196,7 +196,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="glass rounded-2xl p-5 sm:p-6">
+                            <div className="glass-container rounded-2xl p-5 sm:p-6">
                                 <div className="text-sm font-semibold text-(--white)">Verdict share</div>
                                 <p className="mt-1 text-xs text-(--gray)">Proportional breakdown</p>
                                 <div className="mt-4 h-70">
@@ -234,7 +234,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <div className="mt-8 glass rounded-2xl p-5 sm:p-6">
+                        <div className="mt-8 glass-container rounded-2xl p-5 sm:p-6">
                             <div className="text-sm font-semibold text-(--white)">Recent activity</div>
                             <div className="mt-4 space-y-2">
                                 {(data.recentActivity ?? []).length ? (
