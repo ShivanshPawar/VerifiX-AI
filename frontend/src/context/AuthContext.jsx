@@ -8,23 +8,26 @@ export function AuthProvider({ children }) {
   const [user, setUserState] = useState(null)
   const [ready, setReady] = useState(false)
   const isHandlingUnauthorizedRef = useRef(false)
+  const sessionRequestIdRef = useRef(0)
 
   // Session validation via server-side cookie and /auth/me endpoint
   useEffect(() => {
     let active = true
 
     const validateSession = async () => {
+      const requestId = ++sessionRequestIdRef.current
+
       try {
         // Validate session using httpOnly cookie (browser sends it automatically with withCredentials: true)
         const res = await api.get('/auth/me', { skipAuthRedirect: true })
-        if (!active) return
+        if (!active || requestId !== sessionRequestIdRef.current) return
         setUserState(res.data?.user ?? null)
       } catch {
         // No valid session or token expired
-        if (!active) return
+        if (!active || requestId !== sessionRequestIdRef.current) return
         setUserState(null)
       } finally {
-        if (active) setReady(true)
+        if (active && requestId === sessionRequestIdRef.current) setReady(true)
       }
     }
 
@@ -43,6 +46,10 @@ export function AuthProvider({ children }) {
 
   const clearAuth = useCallback(
     async ({ redirectToLogin = false, notifyServer = false } = {}) => {
+      sessionRequestIdRef.current += 1
+      setUserState(null)
+      setReady(true)
+
       if (notifyServer) {
         try {
           // Clear httpOnly cookie on server
@@ -51,8 +58,6 @@ export function AuthProvider({ children }) {
           /* still clear client */
         }
       }
-
-      setUserState(null)
 
       if (redirectToLogin) {
         redirectToSignIn()
@@ -84,12 +89,24 @@ export function AuthProvider({ children }) {
 
   // Helper function to refresh user from server
   const refreshUser = useCallback(async () => {
+    const requestId = ++sessionRequestIdRef.current
+
     try {
       const res = await api.get('/auth/me', { skipAuthRedirect: true })
-      setUserState(res.data?.user ?? null)
-      return res.data?.user ?? null
+      const nextUser = res.data?.user ?? null
+
+      if (requestId === sessionRequestIdRef.current) {
+        setUserState(nextUser)
+        setReady(true)
+      }
+
+      return nextUser
     } catch {
-      setUserState(null)
+      if (requestId === sessionRequestIdRef.current) {
+        setUserState(null)
+        setReady(true)
+      }
+
       return null
     }
   }, [])

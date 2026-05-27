@@ -2,12 +2,33 @@ const env = require("../config/env")
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
+function getBearerToken(req) {
+    const authorization = req.get("authorization");
+
+    if (!authorization) return { token: null };
+
+    const match = authorization.match(/^Bearer\s+(.+)$/i);
+    const token = match?.[1]?.trim();
+
+    if (!token || token.includes(" ")) {
+        return { error: "Malformed authorization header" };
+    }
+
+    return { token };
+}
+
 // Middleware to authenticate requests using JWT tokens
 module.exports = async function authMiddleware(req, res, next) {
 
     try {
-        // Auth now uses only the httpOnly token cookie.
-        const token = req.cookies?.token || null;
+        const bearerToken = getBearerToken(req);
+
+        if (bearerToken.error) {
+            return res.status(401).json({ message: bearerToken.error });
+        }
+
+        // Browsers authenticate with the httpOnly cookie; API clients may use Bearer tokens.
+        const token = req.cookies?.token || bearerToken.token;
 
         if (!token) {
             return res.status(401).json({ message: "Authentication required" });
@@ -15,6 +36,10 @@ module.exports = async function authMiddleware(req, res, next) {
 
         // Verify and decode the JWT token using the secret key
         const decoded = jwt.verify(token, env.jwt_secret);
+
+        if (!decoded?.userId) {
+            return res.status(401).json({ message: "Invalid token payload" });
+        }
 
         // Fetch the user from database using the userId from decoded token
         const user = await User.findById(decoded.userId).select("-password")
@@ -39,7 +64,14 @@ module.exports = async function authMiddleware(req, res, next) {
         next();
 
     } catch (error) {
-        // Return error for invalid or expired tokens
+        if (error?.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Token expired" });
+        }
+
+        if (error?.name === "JsonWebTokenError") {
+            return res.status(401).json({ message: "Invalid token" });
+        }
+
         return res.status(401).json({
             message: "Invalid or expired token"
         })

@@ -37,10 +37,15 @@ const SignUp = () => {
         password,
       })
       // Refresh user from server session (authenticated via httpOnly cookie)
-      await refreshUser()
+      const user = await refreshUser()
+
+      if (!user) {
+        throw new Error('Account created, but the session cookie was not accepted. Please sign in.')
+      }
+
       navigate('/scan', { replace: true })
     } catch (err) {
-      const message = err?.response?.data?.message ?? 'Sign up failed. Please try again.'
+      const message = err?.response?.data?.message ?? err?.message ?? 'Sign up failed. Please try again.'
       setError(message)
     } finally {
       setIsSubmitting(false)

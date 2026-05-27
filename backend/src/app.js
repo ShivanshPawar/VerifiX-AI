@@ -10,12 +10,13 @@ const historyRoutes = require("./routes/history.routes");
 
 // App intialization
 const app = express();
+app.set("trust proxy", 1);
 
 // Using Middlewares
-const allowedFrontendOrigin = env.frontend_origin
+const allowedFrontendOrigins = new Set(env.frontend_origins)
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || origin === allowedFrontendOrigin) {
+        if (!origin || allowedFrontendOrigins.has(origin)) {
             return callback(null, true)
         }
         return callback(new Error(`CORS origin denied: ${origin}`))

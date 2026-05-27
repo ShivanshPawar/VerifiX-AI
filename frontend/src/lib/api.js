@@ -1,6 +1,20 @@
 import axios from 'axios'
 
-const apiBaseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
+function normalizeBaseURL(url) {
+  return url.replace(/\/+$/, '')
+}
+
+function getApiBaseURL() {
+  const configuredBaseURL = import.meta.env.VITE_API_BASE_URL?.trim()
+
+  if (configuredBaseURL) return normalizeBaseURL(configuredBaseURL)
+
+  if (import.meta.env.DEV) return 'http://localhost:3000/api/v1'
+
+  throw new Error('VITE_API_BASE_URL is required for production builds.')
+}
+
+const apiBaseURL = getApiBaseURL()
 const authRedirectIgnoredPaths = ['/auth/login', '/auth/register']
 
 let unauthorizedHandler = null

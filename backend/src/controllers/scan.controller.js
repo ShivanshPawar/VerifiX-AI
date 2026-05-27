@@ -4,7 +4,7 @@ const { generateScanReport } = require("../services/geminiReport.service");
 const ImageAnalysis = require("../models/imageAnalysis.model");
 const UserScan = require("../models/userScan.model");
 const sharp = require("sharp");
-const env = require("../config/env");
+const { getCookieOptions } = require("../utils/cookie-options.util");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -22,17 +22,6 @@ const MODEL_DISPLAY_NAMES = {
 };
 
 // ─── Private helpers ──────────────────────────────────────────────────────────
-
-function guestCookieOptions() {
-  const isProduction = env.node_env === "production";
-  return {
-    httpOnly: true,
-    secure: isProduction || env.cookie_secure,
-    sameSite: isProduction ? "strict" : "lax",
-    maxAge: env.auth_cookie_max_age_ms,
-    path: "/",
-  };
-}
 
 /** Normalize raw RD model list into a clean, client-safe shape with display names. */
 function normalizeRdModels(raw) {
@@ -176,7 +165,7 @@ exports.guestScan = async (req, res) => {
 
     const { analysis, models, source } = await getOrCreateAnalysis(imageHash, buffer, originalName);
 
-    res.cookie("guest_scan_used", "1", guestCookieOptions());
+    res.cookie("guest_scan_used", "1", getCookieOptions());
 
     return res.status(200).json({
       message: "Scan completed",

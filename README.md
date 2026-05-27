@@ -113,11 +113,13 @@ npm install
 ```env
 PORT=3000
 
-MONGODB_URI=your_mongodb_connection_string
+MONGO_URI=your_mongodb_connection_string
 
 JWT_SECRET=your_jwt_secret
 
-FRONTEND_ORIGIN=http://localhost:5173
+FRONTEND_ORIGINS=http://localhost:5173,http://localhost:5174
+COOKIE_SAME_SITE=lax
+COOKIE_SECURE=false
 
 REALITY_DEFENDER_API_KEY=your_api_key
 
@@ -150,6 +152,15 @@ npm install
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+For separate production deployments such as Render/Vercel/Netlify, set:
+
+```env
+FRONTEND_ORIGINS=https://your-frontend-domain
+COOKIE_SAME_SITE=none
+COOKIE_SECURE=true
+VITE_API_BASE_URL=https://your-backend-domain/api/v1
 ```
 
 ### Start frontend server

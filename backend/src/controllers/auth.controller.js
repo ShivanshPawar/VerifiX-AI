@@ -2,22 +2,7 @@ const env = require('../config/env');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/user.model');
-
-function getCookieOptions() {
-    const isProduction = env.node_env === "production";
-    return {
-        httpOnly: true,
-        secure: isProduction || env.cookie_secure,
-        sameSite: isProduction ? "strict" : "lax",
-        maxAge: env.auth_cookie_max_age_ms,
-        path: "/"
-    };
-}
-
-function getClearCookieOptions() {
-    const { maxAge, ...cookieOptions } = getCookieOptions();
-    return cookieOptions;
-}
+const { getCookieOptions, getClearCookieOptions } = require('../utils/cookie-options.util');
 
 // Register User Controller
 exports.register = async (req, res) => {

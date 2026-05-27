@@ -110,6 +110,9 @@ Create a `.env` file in the `backend` directory with the following variables:
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/deepfake_detection
 JWT_SECRET=your_super_secret_jwt_key_here
+FRONTEND_ORIGINS=http://localhost:5173,http://localhost:5174
+COOKIE_SAME_SITE=lax
+COOKIE_SECURE=false
 REALITY_DEFENDER_API_KEY=your_reality_defender_api_key_here
 REALITY_DEFENDER_BASE_URL=https://api.realitydefender.ai  # Optional, defaults to official API
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -121,9 +124,14 @@ GEMINI_API_KEY=your_gemini_api_key_here
 | `PORT` | Server port number | 3000 | No |
 | `MONGO_URI` | MongoDB connection string | - | Yes |
 | `JWT_SECRET` | Secret key for JWT token signing | - | Yes |
+| `FRONTEND_ORIGINS` | Comma-separated frontend origins allowed by CORS | localhost origins | No |
+| `COOKIE_SAME_SITE` | Cookie SameSite policy (`lax`, `strict`, `none`) | `none` in production, `lax` locally | No |
+| `COOKIE_SECURE` | Whether cookies require HTTPS | `true` in production, `false` locally | No |
 | `REALITY_DEFENDER_API_KEY` | API key for Reality Defender service | - | Yes |
 | `REALITY_DEFENDER_BASE_URL` | Custom base URL for Reality Defender API | Official API | No |
 | `GEMINI_API_KEY` | API key for Google Gemini (AI scan reports) | - | Yes |
+
+For separate production frontend/backend domains, use `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true` so browsers send the HTTP-only auth cookie on API requests.
 
 ---
 
