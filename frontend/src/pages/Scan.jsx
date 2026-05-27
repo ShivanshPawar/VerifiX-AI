@@ -19,6 +19,7 @@ import { CloudAlert, History, ImageUp, Minimize2 } from 'lucide-react'
 // ─── Constants & pure helpers (outside component — never recreated) ───────────
 
 const SIDEBAR_KEY = 'verifix_scan_sidebar_open'
+const GUEST_SCAN_KEY = 'verifix_guest_scan_used'
 
 
 const barColorForStatus = (status) => {
@@ -39,6 +40,15 @@ const verdictColorClass = (verdict) => {
 const truncateTitle = (title, maxWords = 5) => {
     const words = (title || 'Untitled scan').split(' ')
     return words.length > maxWords ? `${words.slice(0, maxWords).join(' ')}...` : words.join(' ')
+}
+
+const hasUsedGuestScan = () => {
+    try { return localStorage.getItem(GUEST_SCAN_KEY) === 'true' }
+    catch { return false }
+}
+
+const markGuestScanUsed = () => {
+    try { localStorage.setItem(GUEST_SCAN_KEY, 'true') } catch { /* ignore */ }
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -99,6 +109,10 @@ const Scan = () => {
         setError('')
         setResult(null)
         if (!file) { setError('Please choose an image.'); return }
+        if (!isAuthenticated && hasUsedGuestScan()) {
+            setError('Test scan used. Sign in or sign up to continue.')
+            return
+        }
 
         setIsSubmitting(true)
         try {
@@ -110,10 +124,15 @@ const Scan = () => {
             const res = await api.post(endpoint, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
             setResult(res.data)
             if (isAuthenticated) loadHistory()
+            else markGuestScanUsed()
         } catch (err) {
             const status = err?.response?.status
             if (status === 401) { navigate('/signin', { replace: true }); return }
-            if (status === 403) { setError(err?.response?.data?.message ?? 'Test scan used. Sign in or sign up to continue.'); return }
+            if (status === 403) {
+                if (!isAuthenticated) markGuestScanUsed()
+                setError(err?.response?.data?.message ?? 'Test scan used. Sign in or sign up to continue.')
+                return
+            }
             setError(err?.response?.data?.message ?? 'Scan failed. Please try again.')
         } finally {
             setIsSubmitting(false)

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { api, registerUnauthorizedHandler } from '../lib/api'
+import { api, clearAuthToken, registerUnauthorizedHandler } from '../lib/api'
 
 const AuthContext = createContext(null)
 const AUTH_PAGES = new Set(['/signin', '/signup'])
@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
   const clearAuth = useCallback(
     async ({ redirectToLogin = false, notifyServer = false } = {}) => {
       sessionRequestIdRef.current += 1
+      clearAuthToken()
       setUserState(null)
       setReady(true)
 

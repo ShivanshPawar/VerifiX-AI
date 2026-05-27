@@ -17,6 +17,30 @@ function getBearerToken(req) {
     return { token };
 }
 
+function getTokenCandidates(req, bearerToken) {
+    return [...new Set([req.cookies?.token, bearerToken.token].filter(Boolean))];
+}
+
+function verifyTokenCandidates(tokens) {
+    let lastError = null;
+
+    for (const token of tokens) {
+        try {
+            const decoded = jwt.verify(token, env.jwt_secret);
+
+            if (decoded?.userId) {
+                return { decoded };
+            }
+
+            lastError = new Error("Invalid token payload");
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    return { error: lastError };
+}
+
 // Middleware to authenticate requests using JWT tokens
 module.exports = async function authMiddleware(req, res, next) {
 
@@ -27,22 +51,25 @@ module.exports = async function authMiddleware(req, res, next) {
             return res.status(401).json({ message: bearerToken.error });
         }
 
-        // Browsers authenticate with the httpOnly cookie; API clients may use Bearer tokens.
-        const token = req.cookies?.token || bearerToken.token;
+        // Browsers prefer the httpOnly cookie; split-origin deploys may fall back to Bearer tokens.
+        const tokenCandidates = getTokenCandidates(req, bearerToken);
 
-        if (!token) {
+        if (!tokenCandidates.length) {
             return res.status(401).json({ message: "Authentication required" });
         }
 
-        // Verify and decode the JWT token using the secret key
-        const decoded = jwt.verify(token, env.jwt_secret);
+        const tokenVerification = verifyTokenCandidates(tokenCandidates);
 
-        if (!decoded?.userId) {
+        if (tokenVerification.error) {
+            throw tokenVerification.error;
+        }
+
+        if (!tokenVerification.decoded?.userId) {
             return res.status(401).json({ message: "Invalid token payload" });
         }
 
         // Fetch the user from database using the userId from decoded token
-        const user = await User.findById(decoded.userId).select("-password")
+        const user = await User.findById(tokenVerification.decoded.userId).select("-password")
 
         // Return error if user doesn't exist
         if (!user) {

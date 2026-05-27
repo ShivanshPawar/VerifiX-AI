@@ -46,6 +46,7 @@ exports.register = async (req, res) => {
     // Send success response with user details
     res.status(201).json({
         message: "user register successfully",
+        token,
         user: {
             userId: user._id,
             email: user.email,
@@ -84,6 +85,7 @@ exports.login = async (req, res) => {
     // Send success response with user details
     res.status(200).json({
         message: "User Logged in Successfully",
+        token,
         user: {
             userId: user._id,
             email: user.email,

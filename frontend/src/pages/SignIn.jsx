@@ -1,7 +1,7 @@
 import { Eye, EyeClosed, Undo2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import halfFaceScan from '../assets/images/SideImg.avif';
-import { api } from '../lib/api'
+import { api, setAuthToken } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useMemo, useState } from 'react';
 
@@ -25,12 +25,13 @@ const SignIn = () => {
     setError('')
     setIsSubmitting(true)
     try {
-      await api.post('/auth/login', { email, password }, { skipAuthRedirect: true })
-      // Refresh user from server session (authenticated via httpOnly cookie)
+      const res = await api.post('/auth/login', { email, password }, { skipAuthRedirect: true })
+      setAuthToken(res.data?.token)
+      // Refresh user from the server session before entering protected UI.
       const user = await refreshUser()
 
       if (!user) {
-        throw new Error('Sign in succeeded, but the session cookie was not accepted. Please try again.')
+        throw new Error('Sign in succeeded, but the session could not be verified. Please try again.')
       }
 
       navigate('/scan', { replace: true })

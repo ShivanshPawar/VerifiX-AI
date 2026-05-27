@@ -3,7 +3,9 @@ const { analyzeImage } = require("../services/realityDefender.service");
 const { generateScanReport } = require("../services/geminiReport.service");
 const ImageAnalysis = require("../models/imageAnalysis.model");
 const UserScan = require("../models/userScan.model");
+const GuestScan = require("../models/guestScan.model");
 const sharp = require("sharp");
+const crypto = require("crypto");
 const { getCookieOptions } = require("../utils/cookie-options.util");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -58,6 +60,33 @@ function normalizeRdModels(raw) {
       };
     })
     .filter((m) => m.name);
+}
+
+function hashValue(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function getClientIp(req) {
+  const forwardedFor = req.get("x-forwarded-for");
+  const forwardedIp = forwardedFor?.split(",")?.[0]?.trim();
+
+  return forwardedIp || req.ip || req.socket?.remoteAddress || "unknown";
+}
+
+function getGuestFingerprint(req) {
+  const userAgent = req.get("user-agent") || "unknown";
+  const language = req.get("accept-language") || "";
+
+  return hashValue(`${getClientIp(req)}|${userAgent}|${language}`);
+}
+
+async function reserveGuestScan(req) {
+  try {
+    return await GuestScan.create({ fingerprint: getGuestFingerprint(req) });
+  } catch (error) {
+    if (error?.code === 11000) return null;
+    throw error;
+  }
 }
 
 /** Generate a small compressed thumbnail and return it as a base64 string. */
@@ -158,8 +187,18 @@ exports.guestScan = async (req, res) => {
   }
 
   const { buffer, originalname: originalName = "upload.jpg" } = req.file;
+  let guestReservation = null;
 
   try {
+    guestReservation = await reserveGuestScan(req);
+
+    if (!guestReservation) {
+      res.cookie("guest_scan_used", "1", getCookieOptions());
+      return res.status(403).json({
+        message: "Free trial scan used. Sign up or sign in to scan more images.",
+      });
+    }
+
     const imageHash = generateImageHash(buffer);
     const thumbnail = await generateThumbnail(buffer);
 
@@ -179,6 +218,10 @@ exports.guestScan = async (req, res) => {
       thumbnail_preview: thumbnail,
     });
   } catch (error) {
+    if (guestReservation?._id) {
+      await GuestScan.deleteOne({ _id: guestReservation._id }).catch(() => {});
+    }
+
     return res.status(500).json({ message: "Scan failed", error: error.message });
   }
 };
