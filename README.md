@@ -1,4 +1,4 @@
-# VerifiX
+# VerifiX-AI
 
 AI-Powered Deepfake Image Detection Platform
 
@@ -51,7 +51,7 @@ VerifiX is a full-stack AI-powered web application designed to analyze and detec
 ## 📁 Project Structure
 
 ```bash
-VerifiX/
+VerifiX-AI/
 │
 ├── backend/
 │   ├── src/
@@ -268,18 +268,6 @@ GET /dashboard
 - GIF
 
 Maximum upload size: **10 MB**
-
----
-
-## 👨‍💻 Developers
-
-- Shivansh Pawar
-
----
-
-## 📄 License
-
-Licensed under the MIT License.
 
 ---
 
