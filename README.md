@@ -88,8 +88,8 @@ VerifiX/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/ShivanshPawar/DeepFake-Detection.git
-cd verifix
+git clone https://github.com/ShivanshPawar/VerifiX-AI.git
+cd VerifiX-AI
 ```
 
 ---
